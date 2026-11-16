@@ -23,47 +23,54 @@
 
 診断結果は入力内容と簡略化した前提に基づく**目安**です。国保の実際の金額は市区町村や世帯状況などによって異なります。申告や納付の際は、自治体・税務署などの最新情報を確認してください。
 
+## Rust 版の構成
+
+画面の生成・操作、音声認識後のテキスト解析、台帳の保存・集計・CSV生成、税金・扶養診断を Rust / WebAssembly で実行します。既存の台帳保存キーを引き継ぐため、同じ公開URL・ブラウザで利用すれば従来の記録を読み込めます。
+
+HTML は Rust が読み込む画面テンプレート、CSS は表示スタイルとして使用します。JavaScript は Wasm の起動と自動生成されるブラウザ連携コードに使用します。音声認識自体はブラウザの機能です。旧版の `web/src/` と `web/dist/` は移行前の参照用に残してあり、現在の起動処理からは利用しません。
+
 ## ローカルで実行する
 
-リポジトリにはブラウザ用のビルド済みファイル `web/dist/` が含まれています。Python 3 があれば、リポジトリのルートで次を実行して [http://localhost:8080](http://localhost:8080) を開けます。
+Rust（rustup）、Node.js、Python 3 を用意し、リポジトリのルートで実行します。
 
 ```bash
+rustup target add wasm32-unknown-unknown
+cargo install wasm-pack --version 0.15.1 --locked
+npm run build
 python3 -m http.server 8080 --directory web
 ```
 
-## 開発・ビルド
+[http://localhost:8080](http://localhost:8080) を開いてください。`file://` で直接開くことはできません。Wasm の読み込みが必要です。ローカル導入済みの `.tools/bin/wasm-pack` があれば、ビルドスクリプトはそれを優先します。
 
-TypeScript を編集した場合は、リポジトリのルートで以下を実行します。Node.js の `module.stripTypeScriptTypes` を使用します（Node.js 25 で動作確認）。
+## 開発・テスト・公開
 
-```bash
-npm run build
-```
-
-`wasm-pack` が利用できる場合、通常のビルドは Rust エンジンの WebAssembly ビルドも試みます。Wasm が読み込めない場合は、ブラウザ内の JavaScript エンジンにフォールバックします。Wasm を明示的にビルドするには、Rust と `wasm-pack` を用意して次を実行します。
+Rust の画面コードまたはテンプレートを編集したら `npm run build` で `web/pkg/` を生成し直してください。CSS の変更は再読み込みで反映されます。Wasm ビルドが失敗した場合、ビルドはエラー終了します。
 
 ```bash
-npm run build:wasm
+# Rust の診断エンジンとフロントエンドのテスト
+npm test
+
+# Wasm を実行して画面操作を検証（テスト専用の依存ライブラリを導入）
+npm ci
+npm run test:ui
 ```
 
-Rust のテストは、リポジトリのルートから次のように実行できます。
+画面操作テストは DOM 模擬環境で動きます。実際の音声認識、端末固有のクリップボード権限、見た目はブラウザでの確認が必要です。
 
-```bash
-cargo test --manifest-path engine/Cargo.toml
-```
-
-`npm run build` は `web/dist/` を更新します。GitHub Pages のワークフローは `web/` をそのまま公開するため、フロントエンドを変更した場合はビルド結果もコミットしてください。`main` への push 後、GitHub Actions が Pages にデプロイします。
+`main` への push 後、GitHub Actions が Rust のテスト、Wasm ビルド、画面操作テストを行って Pages にデプロイします。生成物 `web/pkg/` は Git 管理対象外なので、コミットはソースとロックファイルを含めてください。台帳のCSVには全年度を含むことがわかるファイル名を使用します。
 
 ## 主なファイル
 
 ```text
-engine/src/             Rust の診断・税金・国保・扶養計算
-web/index.html          アプリの画面
-web/styles.css          画面のスタイル
-web/src/main.ts         画面操作、音声入力、診断・台帳の連携
-web/src/voice_parser.ts 音声・テキスト入力の解析
-web/src/ledger.ts       台帳の保存、集計、CSV出力
-web/src/wasm_bridge.ts  Wasm 読み込みと JavaScript 計算エンジン
-web/dist/               ブラウザ用の生成済み JavaScript
-scripts/build.mjs       フロントエンドのビルド
-.github/workflows/      GitHub Pages のデプロイ設定
+frontend/src/lib.rs            Rust の画面生成・操作・ブラウザ連携
+frontend/src/view.html         Rust が埋め込む画面テンプレート
+frontend/src/parser.rs         日本語テキストの解析
+frontend/src/ledger.rs         台帳データ形式・集計・CSV生成
+engine/src/                    Rust の税金・国保・扶養計算
+web/index.html                 Wasm の起動と読み込みエラー表示
+web/styles.css                 画面のスタイル
+web/pkg/                       Rust ビルドで生成される配信用 Wasm
+scripts/build.mjs              Rust フロントエンドのビルド
+tests/ui.mjs                  Wasm の画面操作テスト
+.github/workflows/pages.yml    GitHub Pages のテスト・ビルド・公開
 ```

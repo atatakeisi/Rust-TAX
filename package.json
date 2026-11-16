@@ -6,7 +6,12 @@
   "description": "TikTokライバー向け 税金・国保・親の扶養 一撃診断Webアプリ (Rust + WebAssembly / TypeScript)",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "build:wasm": "wasm-pack build engine --target web --out-dir ../web/dist/pkg --release && node scripts/build.mjs",
-    "serve": "npx --yes serve web -l 3000"
+    "build:wasm": "node scripts/build.mjs",
+    "serve": "npx --yes serve web -l 3000",
+    "test": "cargo test --manifest-path engine/Cargo.toml && cargo test --manifest-path frontend/Cargo.toml",
+    "test:ui": "node tests/ui.mjs && node tests/ui.mjs --corrupt"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
   }
 }

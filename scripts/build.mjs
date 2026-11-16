@@ -1,41 +1,15 @@
 #!/usr/bin/env node
-/**
- * 外部 npm パッケージ不要で TypeScript (web/src/*.ts) をブラウザ向け ES Modules (web/dist/*.js) に変換するスクリプト
- * Node.js 標準の `module.stripTypeScriptTypes` を使用。
- * さらに `wasm-pack` が環境に存在する場合は Rust → WebAssembly のビルドも自動実行する。
- */
-
-import { execSync } from 'node:child_process';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { stripTypeScriptTypes } from 'node:module';
+// Build the complete Rust UI and its calculation engine into a browser Wasm module.
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
-const srcDir = join(rootDir, 'web', 'src');
-const distDir = join(rootDir, 'web', 'dist');
-
-mkdirSync(distDir, { recursive: true });
-
-// 1. wasm-pack がインストールされていれば Rust クレートを WebAssembly にビルド
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const local = join(root, '.tools', 'bin', 'wasm-pack');
+const command = existsSync(local) ? local : 'wasm-pack';
 try {
-  execSync('wasm-pack --version', { stdio: 'ignore' });
-  console.log('🦀 wasm-pack detected: building Rust engine to web/dist/pkg ...');
-  execSync('wasm-pack build engine --target web --out-dir ../web/dist/pkg --release', {
-    cwd: rootDir,
-    stdio: 'inherit',
-  });
-} catch {
-  console.log('ℹ️ wasm-pack not found in PATH: using built-in Rust-identical engine in web/dist.');
-}
-
-// 2. TypeScript ソースを ES Modules JS にトランスパイル
-for (const file of readdirSync(srcDir)) {
-  if (!file.endsWith('.ts')) continue;
-  const tsPath = join(srcDir, file);
-  const tsCode = readFileSync(tsPath, 'utf8');
-  const jsCode = stripTypeScriptTypes(tsCode, { mode: 'strip', sourceUrl: file });
-  const jsPath = join(distDir, file.replace(/\.ts$/, '.js'));
-  writeFileSync(jsPath, jsCode, 'utf8');
-  console.log(`✅ Built ${file} -> web/dist/${file.replace(/\.ts$/, '.js')}`);
+  execFileSync(command, ['build', 'frontend', '--target', 'web', '--out-dir', '../web/pkg', '--release', '--no-opt'], { cwd: root, stdio: 'inherit' });
+} catch (error) {
+  console.error('Rust UI build failed. Install wasm-pack and the wasm32-unknown-unknown Rust target.');
+  process.exit(error.status || 1);
 }

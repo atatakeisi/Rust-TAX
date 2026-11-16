@@ -22,6 +22,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Set up Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.15.1 --locked
+      - name: Test Rust crates
+        run: |
+          cargo test --locked --manifest-path engine/Cargo.toml
+          cargo test --locked --manifest-path frontend/Cargo.toml
+      - name: Build Rust application
+        run: node scripts/build.mjs
+      - name: Test Wasm UI
+        run: |
+          npm ci
+          npm run test:ui
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
