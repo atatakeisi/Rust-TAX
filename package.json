@@ -1,0 +1,12 @@
+{
+  "name": "tiktok-liver-rust-tax",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TikTokライバー向け 税金・国保・親の扶養 一撃診断Webアプリ (Rust + WebAssembly / TypeScript)",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:wasm": "wasm-pack build engine --target web --out-dir ../web/dist/pkg --release && node scripts/build.mjs",
+    "serve": "npx --yes serve web -l 3000"
+  }
+}

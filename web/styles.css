@@ -1,0 +1,2085 @@
+:root {
+  --bg-dark: #0b0c14;
+  --bg-card: #151726;
+  --bg-card-inner: #1d2036;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --text-main: #f8f9fc;
+  --text-muted: #a9b1d6;
+  --tiktok-cyan: #00f2fe;
+  --tiktok-pink: #fe0979;
+  --safe-green: #10b981;
+  --Safe-bg: rgba(16, 185, 129, 0.16);
+  --caution-amber: #f59e0b;
+  --caution-bg: rgba(245, 158, 11, 0.18);
+  --out-red: #f43f5e;
+  --out-bg: rgba(244, 63, 94, 0.18);
+  --blue-accent: #38bdf8;
+  --blue-bg: rgba(56, 189, 248, 0.16);
+  --white-accent: #e2e8f0;
+  --white-bg: rgba(226, 232, 240, 0.12);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  background: radial-gradient(circle at 15% 0%, #1d1536 0%, var(--bg-dark) 55%);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 48px;
+}
+
+.app-shell {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* スクショ用1画面表示モード時は入力・台帳セクションを隠して結果カードだけ最上部に表示 */
+body.screenshot-view .top-header,
+body.screenshot-view .voice-section,
+body.screenshot-view .input-section,
+body.screenshot-view .ledger-section {
+  display: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ヘッダー＆プライバシー安心宣言 */
+.top-header {
+  text-align: center;
+  padding: 6px 4px 4px;
+}
+
+.privacy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #a7f3d0;
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.brand-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.brand-badge {
+  background: linear-gradient(90deg, var(--tiktok-cyan), var(--tiktok-pink));
+  color: #090a10;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.engine-badge {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.app-title {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.grad-text {
+  background: linear-gradient(90deg, #00f2fe 0%, #ff4b91 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.app-subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* 共通カード */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.step-num {
+  background: rgba(0, 242, 254, 0.15);
+  color: var(--tiktok-cyan);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.sec-head h2 {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.privacy-mini-tag {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* マイク一発入力ボタン */
+.mic-hero-btn {
+  position: relative;
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 18px 14px;
+  background: linear-gradient(135deg, #fe0979 0%, #ff6a00 100%);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(254, 9, 121, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mic-hero-btn:active {
+  transform: scale(0.98);
+}
+
+.mic-hero-btn.listening {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  animation: pulse-ring 1.3s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(244, 63, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
+  }
+}
+
+.mic-emoji {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.mic-label-main {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.mic-label-sub {
+  font-size: 11.5px;
+  opacity: 0.92;
+}
+
+.mic-level-wrap {
+  width: 85%;
+  max-width: 320px;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.mic-level-caption {
+  font-size: 10.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mic-level-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mic-level-bar {
+  height: 100%;
+  width: 4%;
+  background: linear-gradient(90deg, #10b981, #00f2fe, #fde047);
+  border-radius: 999px;
+  transition: width 0.06s linear;
+}
+
+.mic-status {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: 10px 0 8px;
+  text-align: center;
+}
+
+.voice-samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.sample-chip {
+  flex: 1 1 auto;
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-main);
+  font-size: 11.5px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sample-chip:hover {
+  border-color: var(--tiktok-cyan);
+}
+
+.transcript-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.transcript-input {
+  width: 100%;
+  background: #0e101c;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.detected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.detected-chip {
+  background: rgba(0, 242, 254, 0.14);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  color: #a5f3fc;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+/* STEP 2 ワンタップ選択 */
+.field-group {
+  margin-bottom: 14px;
+}
+
+.field-group:last-child {
+  margin-bottom: 0;
+}
+
+.field-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.select-box {
+  width: 100%;
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 12px;
+  border-radius: 12px;
+}
+
+.seg-group {
+  display: grid;
+  gap: 8px;
+}
+
+.seg-group.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.seg-group.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.seg-btn {
+  background: var(--bg-card-inner);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  padding: 10px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.12s ease;
+}
+
+.seg-btn .seg-main {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.seg-btn .seg-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.seg-btn.active {
+  background: rgba(0, 242, 254, 0.16);
+  border-color: var(--tiktok-cyan);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+}
+
+.sub-slider-box {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+/* スライダーの「− / ＋」ボタン付きコントロール行（動かせる！と一目で気付くデザイン） */
+.pm-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pm-btn {
+  flex: 0 0 auto;
+  min-width: 58px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1.5px solid rgba(255, 255, 255, 0.24);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, background 0.15s ease;
+  user-select: none;
+}
+
+.pm-btn.minus {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.55);
+  color: #fecdd3;
+}
+
+.pm-btn.plus {
+  background: rgba(0, 242, 254, 0.2);
+  border-color: rgba(0, 242, 254, 0.55);
+  color: #a5f3fc;
+}
+
+.pm-btn:active {
+  transform: scale(0.94);
+}
+
+.touch-slider {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 10px;
+  accent-color: var(--tiktok-pink);
+  cursor: grab;
+}
+
+.touch-slider:active {
+  cursor: grabbing;
+}
+
+.touch-slider.exp-slider {
+  accent-color: var(--tiktok-cyan);
+}
+
+/* STEP 3 診断結果カード（ヒーロー表示＆青色/白色色分け） */
+.result-card {
+  background: linear-gradient(180deg, #191b30 0%, #121324 100%);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 22px;
+  padding: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 青色モード選択時はカード全体を鮮やかなブルー基調に発光させて視覚的に一発識別 */
+.result-card[data-biz-mode='blue'] {
+  background: linear-gradient(180deg, #0f253e 0%, #0d1627 100%);
+  border-color: #38bdf8;
+  box-shadow: 0 16px 42px rgba(56, 189, 248, 0.28);
+}
+
+.result-card[data-biz-mode='white'] {
+  background: linear-gradient(180deg, #212438 0%, #141626 100%);
+  border-color: rgba(226, 232, 240, 0.45);
+}
+
+.shot-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.shot-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.shot-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-action-btn {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.mini-action-btn.primary {
+  background: #06c755;
+  border-color: #06c755;
+  color: #fff;
+}
+
+.result-headline {
+  font-size: 16.5px;
+  font-weight: 900;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.result-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* 事業者登録（青色申告 vs 白色・未届）一発変換スイッチ */
+.biz-switch-panel {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.biz-switch-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fde047;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.biz-toggle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.biz-mode-btn {
+  border-radius: 14px;
+  padding: 11px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.biz-mode-btn.white-mode {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(226, 232, 240, 0.25);
+  color: #f1f5f9;
+}
+
+.biz-mode-btn.white-mode.active {
+  background: rgba(248, 250, 252, 0.92);
+  border-color: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+}
+
+.biz-mode-btn.white-mode.active .biz-sub {
+  color: #334155;
+}
+
+.biz-mode-btn.white-mode.active .biz-badge {
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.biz-mode-btn.blue-mode {
+  background: rgba(14, 116, 144, 0.18);
+  border: 2px solid rgba(56, 189, 248, 0.35);
+  color: #e0f2fe;
+}
+
+.biz-mode-btn.blue-mode.active {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  border-color: #7dd3fc;
+  color: #ffffff;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.55);
+}
+
+.biz-badge {
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.biz-main {
+  font-size: 13.5px;
+  font-weight: 900;
+}
+
+.biz-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.biz-mode-btn.blue-mode.active .biz-sub {
+  color: #e0f2fe;
+}
+
+.biz-saving-banner {
+  margin-top: 9px;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 10px;
+  border-radius: 10px;
+  text-align: center;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #bae6fd;
+}
+
+/* 超特大 3大金額表示（所得税・住民税・国民健康保険料） */
+.big-three-wrapper {
+  background: rgba(0, 0, 0, 0.32);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.result-card[data-biz-mode='blue'] .big-three-wrapper {
+  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(2, 132, 199, 0.14);
+}
+
+.big-three-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.big-three-title {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.hero-income-pill {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fde047;
+  background: rgba(250, 204, 21, 0.14);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.mode-indicator-pill {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.mode-indicator-pill.white {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.mode-indicator-pill.blue {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.big-three-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 460px) {
+  .big-three-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.big-tax-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 13px;
+  padding: 10px 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.big-tax-label {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.big-tax-value {
+  font-size: 23px;
+  font-weight: 900;
+  color: #fde047;
+  line-height: 1.2;
+}
+
+.result-card[data-biz-mode='blue'] .big-tax-value {
+  color: #7dd3fc;
+}
+
+.big-tax-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* 手元に残る安全なお金 ＆ 分割で届く納付書への備えプラン */
+.money-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 480px) {
+  .money-split-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.money-card {
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.money-card.reserve-card {
+  background: linear-gradient(145deg, rgba(56, 189, 248, 0.16), rgba(30, 58, 138, 0.28));
+  border: 1.5px solid rgba(56, 189, 248, 0.5);
+}
+
+.money-card.safe-card {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.24), rgba(6, 78, 59, 0.34));
+  border: 1.5px solid rgba(16, 185, 129, 0.65);
+}
+
+.money-card-label {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.money-card-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.money-card-big {
+  font-size: 25px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.reserve-card .money-card-big {
+  color: #fde047;
+}
+
+.safe-card .money-card-big {
+  color: #6ee7b7;
+}
+
+.reserve-monthly-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.reserve-monthly-caption {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(250, 204, 21, 0.18);
+  color: #fde047;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.reserve-monthly-Sub {
+  font-size: 11px;
+  color: #e0f2fe;
+}
+
+.payment-schedule-list {
+  list-style: none;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 7px 9px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+}
+
+.payment-schedule-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+  padding-bottom: 3px;
+}
+
+.payment-schedule-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.payment-schedule-list li span {
+  font-weight: 800;
+  color: #a5f3fc;
+}
+
+.reserve-year-total {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+
+.reserve-year-total strong {
+  font-size: 13px;
+  color: #fda4af;
+}
+
+.money-card-exact {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.aside-tip {
+  margin-top: auto;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+
+/* 親の扶養 1行クイックバー */
+.quick-fuyo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 9px 11px;
+  margin-bottom: 12px;
+}
+
+.fuyo-pill-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.fuyo-pill-label {
+  color: var(--text-muted);
+}
+
+/* STEP 1 録音ボタンの真下に配置したコンパクトな「手入力用（スライダー微調整）」ドロワー */
+.manual-adjust-drawer {
+  margin: 8px 0 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(0, 242, 254, 0.45);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.manual-adjust-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 9px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+.manual-adjust-summary::-webkit-details-marker {
+  display: none;
+}
+
+.manual-adjust-label strong {
+  color: var(--tiktok-cyan);
+}
+
+/* 親に迷惑をかけないための「親の扶養＆やるべきこと詳細」目立つ展開ボタン */
+.parent-care-drawer {
+  margin-top: 12px;
+  border: 2px solid rgba(245, 158, 11, 0.65);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(244, 63, 94, 0.14) 100%);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.18);
+}
+
+.parent-care-summary {
+  padding: 13px 14px;
+  background: transparent;
+}
+
+.parent-care-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.parent-care-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: linear-gradient(90deg, #f59e0b, #f43f5e);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.parent-care-title {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #fef3c7;
+}
+
+.parent-care-drawer .drawer-hint {
+  background: #f59e0b;
+  color: #090a10;
+  font-weight: 900;
+}
+
+.parent-care-drawer[open] .drawer-hint {
+  background: rgba(255, 255, 255, 0.18);
+  color: #f8fafc;
+}
+
+/* 折りたたみドロワー（普段は格納、展開ボタンで開く） */
+.collapsible-drawer {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.drawer-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.drawer-summary::-webkit-details-marker {
+  display: none;
+}
+
+.drawer-hint {
+  font-size: 11px;
+  color: var(--tiktok-cyan);
+  background: rgba(0, 242, 254, 0.14);
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.collapsible-drawer[open] .drawer-hint {
+  background: rgba(254, 9, 121, 0.2);
+  color: #fda4af;
+}
+
+.drawer-body {
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider-guide-note {
+  font-size: 12px;
+  color: #fde047;
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  padding: 7px 10px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+/* 年度別スライダー（ドロワー内） */
+.year-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.year-box {
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.year-box.year-2026 {
+  border-color: rgba(0, 242, 254, 0.4);
+}
+
+.year-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.year-tag {
+  font-size: 13px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.year-tag.highlight {
+  background: rgba(0, 242, 254, 0.2);
+  color: var(--tiktok-cyan);
+}
+
+.year-rule {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.slider-block {
+  margin-bottom: 12px;
+}
+
+.slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+
+.slider-val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.slider-val.accent {
+  color: var(--tiktok-cyan);
+}
+
+.quick-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-chips button {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.year-options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.mini-select {
+  background: #0e101c;
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.mini-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.income-summary-pill {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.income-summary-pill strong {
+  font-size: 16px;
+  color: #fde047;
+}
+
+/* 期限後申告アラート */
+.late-alert-box {
+  background: var(--out-bg);
+  border: 1.5px solid var(--out-red);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.late-alert-title {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #fda4af;
+  margin-bottom: 4px;
+}
+
+.late-alert-msg {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.late-alert-num {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #ffe4e6;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 5px 9px;
+  border-radius: 8px;
+}
+
+/* 扶養判定・内訳ブロック（ドロワー内） */
+.diag-block {
+  margin-bottom: 14px;
+}
+
+.diag-title {
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.dep-grid,
+.bd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .dep-grid,
+  .bd-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dep-year-card,
+.bd-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.bd-card.highlight {
+  border-color: rgba(0, 242, 254, 0.45);
+}
+
+.dep-year-head {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tiktok-cyan);
+  margin-bottom: 8px;
+}
+
+.dep-row {
+  padding: 7px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.dep-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.dep-kind {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-badge {
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge-safe {
+  background: var(--Safe-bg);
+  color: #6ee7b7;
+  border: 1px solid var(--safe-green);
+}
+
+.badge-caution {
+  background: var(--caution-bg);
+  color: #fcd34d;
+  border: 1px solid var(--caution-amber);
+}
+
+.badge-out {
+  background: var(--out-bg);
+  color: #fda4af;
+  border: 1px solid var(--out-red);
+}
+
+.badge-na {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.dep-msg {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* 支払内訳 */
+.bd-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.bd-pill {
+  font-size: 10.5px;
+  background: rgba(0, 242, 254, 0.14);
+  color: #a5f3fc;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.bd-total-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bd-total-big {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fde047;
+}
+
+.bd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.bd-list > div {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  padding-top: 4px;
+}
+
+.bd-list dt {
+  color: var(--text-muted);
+}
+
+.bd-list dd {
+  font-weight: 800;
+}
+
+/* アクションリスト */
+.action-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-item {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 4px solid var(--safe-green);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.action-item.priority-out {
+  border-left-color: var(--out-red);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.action-item.priority-caution {
+  border-left-color: var(--caution-amber);
+  background: rgba(245, 158, 11, 0.09);
+}
+
+.action-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.action-title {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.action-when {
+  margin-left: auto;
+  font-size: 10.5px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fde047;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.action-detail {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.notes-list {
+  padding-left: 18px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* STEP 4: 普段は格納されている「🔥やる気スイッチ（1円単位・確定申告精密台帳）」 */
+.ledger-section {
+  border-color: rgba(56, 189, 248, 0.4);
+  padding: 0;
+  overflow: visible;
+}
+
+.pro-ledger-drawer {
+  width: 100%;
+}
+
+.pro-ledger-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(37, 99, 235, 0.16) 100%);
+  border-radius: var(--radius-lg);
+  transition: background 0.15s ease;
+}
+
+.pro-ledger-summary::-webkit-details-marker {
+  display: none;
+}
+
+.pro-ledger-summary:hover {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.32) 0%, rgba(37, 99, 235, 0.24) 100%);
+}
+
+.pro-switch-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pro-switch-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: linear-gradient(90deg, #f59e0b, #fe0979);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.pro-switch-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #f8fafc;
+}
+
+.pro-switch-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.pro-switch-cta {
+  flex: 0 0 auto;
+  background: var(--tiktok-cyan);
+  color: #090a10;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pro-ledger-drawer[open] .pro-switch-cta {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+}
+
+.pro-ledger-body {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ledger-intro {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.ledger-pref-box {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  padding: 11px 12px;
+  margin-bottom: 14px;
+}
+
+.ledger-form {
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 押した「❓」ボタンの真上に浮かび上がり、下の入力欄を一切隠さない吹き出しポップオーバー */
+.lf-help-anchor {
+  position: relative;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lf-inline-popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: min(320px, 84vw);
+  z-index: 200;
+  background: #0f253e;
+  border: 2px solid var(--tiktok-cyan);
+  border-radius: 14px;
+  padding: 11px 13px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.85);
+}
+
+/* 吹き出しの下向き三角しっぽ（「❓」ボタンの真上を指す） */
+.lf-inline-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 18px;
+  border-width: 7px;
+  border-style: solid;
+  border-color: var(--tiktok-cyan) transparent transparent transparent;
+}
+
+.lf-pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.lf-pop-head strong {
+  font-size: 12px;
+  color: #a5f3fc;
+}
+
+.lf-pop-close {
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  color: #f8fafc;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lf-inline-popover p {
+  font-size: 11.5px;
+  color: #f1f5f9;
+  line-height: 1.45;
+}
+
+.lf-help-chip.active {
+  background: var(--tiktok-cyan);
+  border-color: var(--tiktok-cyan);
+  color: #090a10;
+}
+
+/* 記帳ボタンの真上に出る完了/未入力吹き出しフィードバック */
+.lf-submit-feedback {
+  position: relative;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lf-submit-feedback::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 28px;
+  border-width: 7px;
+  border-style: solid;
+}
+
+.lf-submit-feedback.is-error {
+  background: rgba(244, 63, 94, 0.22);
+  border: 1.5px solid var(--out-red);
+  color: #ffe4e6;
+}
+
+.lf-submit-feedback.is-error::after {
+  border-color: var(--out-red) transparent transparent transparent;
+}
+
+.lf-submit-feedback.is-success {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1.5px solid var(--safe-green);
+  color: #d1fae5;
+}
+
+.lf-submit-feedback.is-success::after {
+  border-color: var(--safe-green) transparent transparent transparent;
+}
+
+.lf-submit-feedback strong {
+  display: block;
+  font-size: 12.5px;
+  margin-bottom: 2px;
+}
+
+.lf-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lf-label-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lf-step-badge {
+  background: rgba(0, 242, 254, 0.18);
+  color: var(--tiktok-cyan);
+  font-size: 11px;
+  font-weight: 900;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.lf-label-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.lf-help-chip {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #bae6fd;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lf-help-chip:hover {
+  border-color: var(--tiktok-cyan);
+}
+
+/* ① 売上 / 経費の直感2択カードボタン */
+.lf-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 460px) {
+  .lf-type-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lf-type-card {
+  background: #0e101c;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--text-main);
+  transition: all 0.15s ease;
+}
+
+.lf-type-title {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.lf-type-desc {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.lf-type-card.income-card.active {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.28);
+}
+
+.lf-type-card.expense-card.active {
+  background: rgba(244, 63, 94, 0.18);
+  border-color: #f43f5e;
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.28);
+}
+
+/* ② 年・月・日の3分割セレクト（202611年バグ防止） */
+.lf-date-selects {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 8px;
+}
+
+.lf-date-unit select,
+.lf-select-input,
+.lf-text-input {
+  width: 100%;
+  background: #0e101c;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  color: var(--text-main);
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+
+/* ④ 金額入力＋単位「円」 */
+.lf-amount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lf-amount-wrap input {
+  flex: 1;
+  background: #0e101c;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #fde047;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+
+.lf-amount-wrap input.input-error-shake {
+  border-color: var(--out-red);
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
+}
+
+.lf-yen-suffix {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text-muted);
+}
+
+.lf-quick-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.lf-quick-caption {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.lf-quick-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.lf-quick-btn:hover {
+  border-color: var(--tiktok-cyan);
+}
+
+.lf-quick-btn.clear {
+  background: rgba(244, 63, 94, 0.16);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #fda4af;
+}
+
+.lf-micro-hint {
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.ledger-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .ledger-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ledger-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-add-entry {
+  flex: 1 1 200px;
+  background: linear-gradient(90deg, #0284c7, #2563eb);
+  border: none;
+  color: #fff;
+  font-weight: 900;
+  font-size: 13px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.btn-sync-diag {
+  flex: 1 1 200px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1.5px solid #10b981;
+  color: #6ee7b7;
+  font-weight: 900;
+  font-size: 12.5px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+
+.ledger-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ledger-year-tabs {
+  display: flex;
+  gap: 6px;
+}
+
+.ly-tab {
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.ly-tab.active {
+  background: var(--tiktok-cyan);
+  border-color: var(--tiktok-cyan);
+  color: #090a10;
+}
+
+.ledger-verify-box {
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.lv-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 440px) {
+  .lv-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lv-kpi {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 10px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.lv-kpi strong {
+  font-size: 16px;
+  color: #fff;
+}
+
+.lv-kpi.accent strong {
+  color: #fde047;
+}
+
+.lv-check-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+}
+
+.ledger-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  .ledger-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.la-card {
+  background: var(--bg-card-inner);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.la-card h4 {
+  font-size: 12.5px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #a5f3fc;
+}
+
+.full-table-card {
+  margin-top: 4px;
+}
+
+.table-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 6px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.mini-table th {
+  color: var(--text-muted);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  background: var(--bg-card-inner);
+}
+
+.td-income {
+  color: #6ee7b7;
+  font-weight: 800;
+}
+
+.td-expense {
+  color: #fda4af;
+  font-weight: 800;
+}
+
+.btn-del-entry {
+  background: rgba(244, 63, 94, 0.2);
+  border: 1px solid rgba(244, 63, 94, 0.45);
+  color: #fda4af;
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.app-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+
+/* 非ブロッキング共有・コピー用モーダル（alertやシステムシートによるフリーズ防止） */
+.share-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.share-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 12, 0.85);
+}
+
+.share-modal-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  background: #181b2e;
+  border: 2px solid var(--tiktok-cyan);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.share-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-modal-head h3 {
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.btn-close-modal {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.share-modal-status {
+  font-size: 12px;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 7px 10px;
+  border-radius: 10px;
+}
+
+.share-modal-textarea {
+  width: 100%;
+  background: #0d0f1a;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f8fafc;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 10px;
+  border-radius: 10px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.share-modal-actions {
+  display: flex;
+  gap: 8px;
+}

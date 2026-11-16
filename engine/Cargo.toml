@@ -1,0 +1,23 @@
+[package]
+name = "rust_tax_engine"
+version = "0.1.0"
+edition = "2021"
+description = "TikTokライバー向け 税金・国保・親の扶養 診断エンジン（2025年分・2026年分）"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Os"]
