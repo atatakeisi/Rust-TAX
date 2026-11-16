@@ -1,0 +1,4 @@
+# Retired TypeScript implementation, kept only as a migration reference.
+web/src/** -linguist-detectable
+# Compiled JavaScript from the retired implementation.
+web/dist/** linguist-generated
