@@ -74,3 +74,11 @@ scripts/build.mjs              Rust フロントエンドのビルド
 tests/ui.mjs                  Wasm の画面操作テスト
 .github/workflows/pages.yml    GitHub Pages のテスト・ビルド・公開
 ```
+## ライセンス・免責事項
+
+本ソフトウェアはMITライセンスで公開されています。
+
+税額・社会保険料等の試算結果は参考情報です。実際の申告や手続きの前に、最新の公的資料をご確認ください。
+
+- [MITライセンス](LICENSE)
+- [ご利用上の注意・免責事項](DISCLAIMER.md)
