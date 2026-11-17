@@ -78,13 +78,9 @@ pub fn apply(raw: &str, s: &mut DiagnoseInput) {
             s.start_month2025 = m;
         }
     }
-    if text.contains("青色") {
-        s.blue_return = !re("青色.*(ない|まだ)").is_match(&text);
-    } else if text.contains("白色") {
-        s.blue_return = false;
-    }
     if re("未申告|申告してない|まだ出してない").is_match(&text) {
         s.filed2025 = false;
+        s.blue_return_2025 = false;
     } else if re("申告済|申告した|確定申告出した").is_match(&text) {
         s.filed2025 = true;
     }

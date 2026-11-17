@@ -12,9 +12,9 @@
       </div>
       <h1 class="app-title">
         TikTokライバー<br />
-        <span class="grad-text">税金・国保・親の扶養</span> 一撃診断
+        <span class="grad-text">税金・国保シミュレーター</span>
       </h1>
-      <p class="app-subtitle">最初に録音するかプロフィールを選ぶだけ！青色/白色の一発比較＆確定申告台帳つき</p>
+      <p class="app-subtitle">配信収入から税金・国保と扶養への影響を試算。収支の記録にも。</p>
     </header>
 
     <!-- STEP 1: マイク（音声）一発入力セクション -->
@@ -147,6 +147,10 @@
                   <input type="checkbox" id="check-filed-2025" />
                   <span>2025年分は申告済み</span>
                 </label>
+                <label id="blue-option-2025" class="mini-check hidden">
+                  <input type="checkbox" id="check-blue-2025" />
+                  <span>2025年分は期限内に青色申告し、65万円控除を適用した</span>
+                </label>
               </div>
 
               <div class="income-summary-pill">
@@ -181,9 +185,9 @@
         <button
           type="button"
           class="sample-chip"
-          data-voice-sample="24歳、配信のみで去年80万、今年400万、経費60万、青色申告"
+          data-voice-sample="24歳、配信のみで去年80万、今年400万、経費60万"
         >
-          💎 例3: 24歳・専業・今年400万（青色）
+          💎 例3: 24歳・専業・今年400万
         </button>
       </div>
 
@@ -253,8 +257,7 @@
       </div>
     </section>
 
-    <!-- STEP 3: 録音・プロフィール直後に大きく目立つ「診断結果＆青色/白色一発変換ヒーロー」 -->
-    <section id="result-card" class="result-card" data-overall="out" data-biz-mode="white" aria-label="一撃診断結果カード">
+    <section id="result-card" class="result-card" data-overall="out" data-biz-mode="white" aria-label="試算結果">
       <div class="shot-card-header">
         <div class="shot-header-top">
           <span class="shot-tag">📱 スクショして保存・LINEで送れる診断書</span>
@@ -267,44 +270,36 @@
         <p id="result-meta" class="result-meta"></p>
       </div>
 
-      <!-- 事業者登録（青色申告 vs 白色・未届）色分け一発変換スイッチ -->
       <div class="biz-switch-panel">
-        <div class="biz-switch-title">
-          <span>🔄 事業者登録（青色申告）の節税シミュレーション</span>
+        <h3 class="biz-switch-title">2026年分の配信所得</h3>
+        <div class="income-formulas">
+          <div class="hero-income-pill">
+            <strong>白色申告</strong>
+            <span id="income-white-formula"></span>
+          </div>
+          <div class="hero-income-pill blue-formula">
+            <strong>青色申告（65万円控除の要件を満たす場合）</strong>
+            <span id="income-blue-formula"></span>
+          </div>
         </div>
-        <div class="biz-toggle-grid">
-          <button type="button" id="btn-mode-white" class="biz-mode-btn white-mode active" data-blue-return="false">
-            <span class="biz-badge">白色 / 未登録</span>
-            <span class="biz-main">事業者登録しない場合</span>
-            <span class="biz-sub">特別控除 0円</span>
-          </button>
-          <button type="button" id="btn-mode-blue" class="biz-mode-btn blue-mode" data-blue-return="true">
-            <span class="biz-badge">📘 青色 65万控除</span>
-            <span class="biz-main">事業者登録した場合</span>
-            <span class="biz-sub">最大65万円 所得カット</span>
-          </button>
+        <div id="income-salary-summary" class="income-salary-summary hidden">
+          <p id="income-total-formula"></p>
+          <p id="income-salary-formula"></p>
+          <p id="income-combined-formula"></p>
         </div>
-        <div id="biz-saving-banner" class="biz-saving-banner">
-          💡 「事業者登録した場合」をタップすると、いくら安くなるか一発で比較できます
-        </div>
+        <label class="blue-confirm">
+          <input type="checkbox" id="check-blue-2026" aria-describedby="blue-deadline" />
+          <span>2026年分の青色申告の承認を受け、65万円控除の要件を満たす見込み</span>
+        </label>
+        <p id="blue-deadline" class="blue-deadline">2026年分の申請期限を過ぎた場合は2027年分以降。<a href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm" target="_blank" rel="noopener">申請期限を確認</a></p>
       </div>
 
       <!-- 超特大 3大金額表示（所得税・住民税・国民健康保険料） -->
       <div class="big-three-wrapper">
         <div class="big-three-header">
-          <span class="big-three-title">📊 あなたが払う3大コスト（2026年分目安）</span>
-          <span id="hero-income-pill" class="hero-income-pill">振込250万円 − 経費30万円 ＝ 所得220万円</span>
+          <span id="hero-cost-title" class="big-three-title">2026年分の負担目安（白色）</span>
         </div>
-        <div class="income-explanation" aria-label="所得の計算内訳">
-          <strong>収入から所得を計算する流れ</strong>
-          <p>配信と給与は、収入から差し引くものが異なるため、別々に所得を計算してから合算します。</p>
-          <p id="income-total-formula"></p>
-          <p id="income-business-formula"></p>
-          <p id="income-salary-formula"></p>
-          <p id="income-combined-formula"></p>
-          <p id="income-tax-note"></p>
-        </div>
-        <p class="estimate-notice"><strong>ご利用にあたって：</strong>この診断は入力情報と一定の前提に基づく概算です。実際の税額や保険料、申告の要否は、所得の区分、控除、加入する保険、自治体や個別の事情などにより異なります。申告や納付の前に、税務署・自治体・税理士等にご確認ください。青色申告特別控除の適用には要件があります。</p>
+        <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
         <div class="big-three-grid">
           <div class="big-tax-box">
             <span class="big-tax-label">① 所得税（国税）</span>
@@ -322,6 +317,7 @@
             <small id="hero-nhi-sub" class="big-tax-sub">全国平均（身バレ防止）</small>
           </div>
         </div>
+        <p class="estimate-caption">入力条件に基づく概算です。申告・納付前は税務署などにご確認ください。</p>
       </div>
 
       <!-- 手元に残る安全なお金 ＆ 分割で届く納付書の月別備えプラン（一撃総額のショックを和らげる設計） -->
@@ -734,6 +730,7 @@
     </div>
 
     <footer class="app-footer">
+      <p><a href="https://github.com/atatakeisi/Rust-TAX/blob/main/DISCLAIMER.md" target="_blank" rel="noopener">ご利用上の注意・免責事項</a></p>
       <p>🔒 完全クライアントサイド動作（GitHub Pages対応） | 端末内計算・音声認識はブラウザ提供機能</p>
     </footer>
   </div>

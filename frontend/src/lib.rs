@@ -131,11 +131,8 @@ fn sync(s: &DiagnoseInput) {
         "data-has-salary",
         if s.has_salary { "true" } else { "false" },
     );
-    active(
-        "data-blue-return",
-        if s.blue_return { "true" } else { "false" },
-    );
     hidden("salary-detail-box", !s.has_salary);
+    hidden("blue-option-2025", !s.filed2025);
     for (id, n) in [
         ("inc-2025", s.income2025),
         ("exp-2025", s.expense2025),
@@ -155,9 +152,13 @@ fn sync(s: &DiagnoseInput) {
         text(&format!("val-{id}"), man(n));
     }
     setval("select-start-2025", s.start_month2025);
-    el("check-filed-2025")
-        .unchecked_ref::<HtmlInputElement>()
-        .set_checked(s.filed2025);
+    for (id, checked) in [
+        ("check-filed-2025", s.filed2025),
+        ("check-blue-2025", s.filed2025 && s.blue_return_2025),
+        ("check-blue-2026", s.blue_return_2026),
+    ] {
+        el(id).unchecked_ref::<HtmlInputElement>().set_checked(checked);
+    }
 }
 fn render(a: &App) {
     let s = &a.input;
@@ -167,7 +168,7 @@ fn render(a: &App) {
     let _ = el("result-card").set_attribute("data-overall", status(out.overall));
     let _ = el("result-card").set_attribute(
         "data-biz-mode",
-        if s.blue_return { "blue" } else { "white" },
+        if s.blue_return_2026 { "blue" } else { "white" },
     );
     text("result-headline", &out.headline);
     text(
@@ -177,27 +178,65 @@ fn render(a: &App) {
             out.prefecture_name, out.prefecture_city, s.age
         ),
     );
-    let mut other = s.clone();
-    other.blue_return = !s.blue_return;
-    let alt = diagnose(&other);
-    let saving = (out.lock_total - alt.lock_total).abs();
-    text("biz-saving-banner",format!("青色・白色の負担差の目安：{}。青色65万円控除には承認・帳簿・電子申告等の要件があります。",man(saving)));
+    let blue_case = (!s.blue_return_2026).then(|| {
+        let mut scenario = s.clone();
+        scenario.blue_return_2026 = true;
+        diagnose(&scenario)
+    });
+    let blue = blue_case.as_ref().map_or(y, |scenario| &scenario.years[1]);
     text(
-        "hero-income-pill",
+        "income-white-formula",
         format!(
-            "2026年: 振込{} − 経費{} − 青色控除{} ＝ 所得{}",
+            "振込{} − 経費{} ＝ {}",
             man(y.gross),
             man(y.expense),
-            man(y.blue_deduction),
-            man(y.business_income)
+            man(y.gross - y.expense),
         ),
     );
-    let salary = if s.has_salary { s.salary_annual.max(0) } else { 0 };
-    text("income-total-formula", format!("収入の合計：配信の振込{} ＋ 給与{} ＝ {}", man(y.gross), man(salary), man(y.gross + salary)));
-    text("income-business-formula", format!("配信の所得：振込{} − 経費{} − 青色申告特別控除{} ＝ {}", man(y.gross), man(y.expense), man(y.blue_deduction), man(y.business_income)));
-    text("income-salary-formula", format!("給与所得：給与{} − 給与所得控除{} ＝ {}", man(salary), man(salary - y.salary_income), man(y.salary_income)));
-    text("income-combined-formula", format!("所得の合計：配信{} ＋ 給与{} ＝ {}。ここから基礎控除などを引いて税額を計算します。", man(y.business_income), man(y.salary_income), man(y.total_income)));
-    text("income-tax-note", if salary > 0 { "下の所得税・住民税は、給与のみの場合と比較して配信により増える分の目安です。給与分を含む税額の総額ではありません。" } else { "下の金額は、入力条件に基づく税金・保険料の目安です。" });
+    text(
+        "income-blue-formula",
+        format!(
+            "振込{} − 経費{} − 青色控除{} ＝ {}",
+            man(blue.gross),
+            man(blue.expense),
+            man(blue.blue_deduction),
+            man(blue.business_income),
+        ),
+    );
+    let mode = if s.blue_return_2026 { "青色" } else { "白色" };
+    text("hero-cost-title", format!("2026年分の負担目安（{mode}）"));
+    let salary = s.salary_annual.max(0);
+    hidden("income-salary-summary", !s.has_salary);
+    hidden("income-tax-note", !s.has_salary || salary == 0);
+    if s.has_salary {
+        text(
+            "income-total-formula",
+            format!(
+                "収入合計　振込{} ＋ 給与{} ＝ {}",
+                man(y.gross),
+                man(salary),
+                man(y.gross + salary),
+            ),
+        );
+        text(
+            "income-salary-formula",
+            format!(
+                "給与所得　給与{} − 給与所得控除{} ＝ {}",
+                man(salary),
+                man(salary - y.salary_income),
+                man(y.salary_income),
+            ),
+        );
+        text(
+            "income-combined-formula",
+            format!(
+                "合計所得（{mode}）　配信所得{} ＋ 給与所得{} ＝ {}",
+                man(y.business_income),
+                man(y.salary_income),
+                man(y.total_income),
+            ),
+        );
+    }
     for (id, n) in [
         ("hero-it-2026", y.income_tax),
         ("hero-rt-2026", y.resident_tax),
@@ -427,7 +466,17 @@ fn update(a: &mut App, id: &str) {
         "pref-select" => a.input.prefecture = num(id) as usize,
         "select-start-2025" => a.input.start_month2025 = num(id) as u32,
         "check-filed-2025" => {
-            a.input.filed2025 = el(id).unchecked_ref::<HtmlInputElement>().checked()
+            a.input.filed2025 = el(id).unchecked_ref::<HtmlInputElement>().checked();
+            if !a.input.filed2025 {
+                a.input.blue_return_2025 = false;
+            }
+        }
+        "check-blue-2025" => {
+            a.input.blue_return_2025 =
+                a.input.filed2025 && el(id).unchecked_ref::<HtmlInputElement>().checked();
+        }
+        "check-blue-2026" => {
+            a.input.blue_return_2026 = el(id).unchecked_ref::<HtmlInputElement>().checked();
         }
         "slider-inc-2025" => a.input.income2025 = num(id) * 10000,
         "slider-exp-2025" => a.input.expense2025 = num(id) * 10000,
@@ -538,8 +587,6 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         if a.input.has_salary && a.input.salary_annual == 0 {
             a.input.salary_annual = 800000;
         }
-    } else if let Some(v) = attr("data-blue-return") {
-        a.input.blue_return = v == "true";
     } else if let Some(v) = attr("data-voice-sample") {
         setval("voice-transcript-input", &v);
         parser::apply(&v, &mut a.input);

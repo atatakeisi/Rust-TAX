@@ -24,8 +24,10 @@ pub struct DiagnoseInput {
     pub salary_annual: i64,
     /// 勤務先の社会保険（健康保険・厚生年金）に本人が加入しているか
     pub salary_has_shaho: bool,
-    /// 青色申告（65万円控除）をしている／する予定か
-    pub blue_return: bool,
+    /// 2025年分は期限内に青色申告し、65万円控除を適用したか
+    pub blue_return_2025: bool,
+    /// 2026年分の青色申告承認を受け、65万円控除の要件を満たす見込みか
+    pub blue_return_2026: bool,
     /// 2025年分の確定申告をすでに出したか
     pub filed2025: bool,
     /// 一人暮らし（自分が世帯主）か。false = 親と同居（親が世帯主）
@@ -48,7 +50,8 @@ impl Default for DiagnoseInput {
             has_salary: false,
             salary_annual: 0,
             salary_has_shaho: false,
-            blue_return: false,
+            blue_return_2025: false,
+            blue_return_2026: false,
             filed2025: false,
             lives_alone: false,
             start_month2025: 0,

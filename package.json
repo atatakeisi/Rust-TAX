@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "TikTokライバー向け 税金・国保・親の扶養 一撃診断Webアプリ (Rust + WebAssembly / TypeScript)",
+  "description": "TikTokライバー向け 税金・国保シミュレーター (Rust + WebAssembly)",
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:wasm": "node scripts/build.mjs",

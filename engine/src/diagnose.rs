@@ -92,8 +92,13 @@ fn calc_year(
     let expense = exp_raw.max(0).min(gross);
     let profit_before_blue = (gross - expense).max(0);
 
+    let blue_return = match year {
+        2025 => input.filed2025 && input.blue_return_2025,
+        2026 => input.blue_return_2026,
+        _ => false,
+    };
     // 青色申告特別控除（65万円、ただし所得金額が上限）
-    let blue_deduction = if input.blue_return {
+    let blue_deduction = if blue_return {
         profit_before_blue.min(65 * MAN)
     } else {
         0
@@ -188,10 +193,10 @@ fn calc_year(
     // - 給与あり（年末調整済み想定）: 配信の所得が 20万円超で確定申告が必要
     // - 給与なし（配信のみ）: 合計所得が基礎控除超（または青色65万控除を使うため申告必要）
     let filing_required = if input.has_salary && salary_raw > 0 {
-        business_income > 20 * MAN || (input.blue_return && profit_before_blue > 20 * MAN)
+        business_income > 20 * MAN || (blue_return && profit_before_blue > 20 * MAN)
     } else {
         total_income_it > it_full.basic_deduction
-            || (input.blue_return && profit_before_blue > it_full.basic_deduction)
+            || (blue_return && profit_before_blue > it_full.basic_deduction)
             || (year == 2025 && profit_before_blue > 48 * MAN)
     };
 
@@ -307,7 +312,7 @@ fn build_headline(
         }
         Status::Safe | Status::Na => {
             if y2025.gross == 0 && y2026.gross == 0 {
-                "🎙️ 上のマイクで喋るかスライダーを動かすと、税金・国保・親の扶養を一撃診断します".into()
+                "🎙️ 収入を入力すると、税金・国保の目安と扶養への影響が表示されます".into()
             } else {
                 "🟢 親の扶養も保険証もセーフ！領収書・スクショだけ残しておけば安心です".into()
             }
@@ -390,13 +395,13 @@ fn build_actions(
 
     // 4. 青色申告の提案（まだ白色で、所得がそれなりにある場合）
     let profit_2026 = (y2026.gross - y2026.expense).max(0);
-    if !input.blue_return && profit_2026 > 65 * MAN {
+    if !input.blue_return_2026 && profit_2026 > 65 * MAN {
         list.push(Action {
             priority: Status::Caution,
             icon: "📘".into(),
-            title: "「開業届」＋「青色申告承認申請書」を出して65万円控除を使う".into(),
-            detail: "スマホ会計アプリ（freee・マネーフォワード・弥生など）から無料で書類を作ってマイナポータル送信できます。最大65万円を所得から引けるので、税金・国保が一気に安くなり親の扶養にも残りやすくなります。".into(),
-            when: "青色にしたい年の3月15日まで（新規開業は開業から2か月以内）".into(),
+            title: "青色申告を始める年と申請期限を確認する".into(),
+            detail: "青色申告には開業届とは別に承認申請が必要です。2026年分の申請期限を過ぎた場合は、2027年分以降の適用を確認してください。".into(),
+            when: "原則3月15日まで（1月16日以降の新規開業は開業から2か月以内）".into(),
         });
     }
 

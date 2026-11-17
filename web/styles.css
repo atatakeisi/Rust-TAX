@@ -522,7 +522,7 @@ body.screenshot-view .ledger-section {
   margin-bottom: 12px;
 }
 
-/* 事業者登録（青色申告 vs 白色・未届）一発変換スイッチ */
+/* 配信所得の比較と青色控除の適用条件 */
 .biz-switch-panel {
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -532,98 +532,78 @@ body.screenshot-view .ledger-section {
 }
 
 .biz-switch-title {
-  font-size: 12px;
-  font-weight: 800;
-  color: #fde047;
-  margin-bottom: 8px;
-  text-align: center;
+  font-size: 14px;
+  margin: 0 0 8px;
 }
 
-.biz-toggle-grid {
+.income-formulas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 6px;
 }
 
-.biz-mode-btn {
-  border-radius: 14px;
-  padding: 11px 10px;
-  cursor: pointer;
+.hero-income-pill {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  text-align: center;
-  transition: all 0.15s ease;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  row-gap: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #e2e8f0;
+  background: rgba(226, 232, 240, 0.07);
+  border: 1px solid rgba(226, 232, 240, 0.22);
+  padding: 6px 10px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
 }
 
-.biz-mode-btn.white-mode {
-  background: rgba(255, 255, 255, 0.06);
-  border: 2px solid rgba(226, 232, 240, 0.25);
-  color: #f1f5f9;
+.hero-income-pill.blue-formula {
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
-.biz-mode-btn.white-mode.active {
-  background: rgba(248, 250, 252, 0.92);
-  border-color: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+.income-salary-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.biz-mode-btn.white-mode.active .biz-sub {
-  color: #334155;
+.income-salary-summary p {
+  margin: 3px 0;
 }
 
-.biz-mode-btn.white-mode.active .biz-badge {
-  background: #0f172a;
-  color: #f8fafc;
+.blue-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  cursor: pointer;
 }
 
-.biz-mode-btn.blue-mode {
-  background: rgba(14, 116, 144, 0.18);
-  border: 2px solid rgba(56, 189, 248, 0.35);
-  color: #e0f2fe;
+.blue-confirm input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin: 1px 0 0;
+  accent-color: #7dd3fc;
 }
 
-.biz-mode-btn.blue-mode.active {
-  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-  border-color: #7dd3fc;
-  color: #ffffff;
-  box-shadow: 0 0 22px rgba(56, 189, 248, 0.55);
-}
-
-.biz-badge {
-  font-size: 10.5px;
-  font-weight: 900;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.biz-main {
-  font-size: 13.5px;
-  font-weight: 900;
-}
-
-.biz-sub {
-  font-size: 10.5px;
+.blue-deadline, .estimate-caption {
+  font-size: 11px;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
-.biz-mode-btn.blue-mode.active .biz-sub {
-  color: #e0f2fe;
-}
+.blue-deadline { margin: 0; }
+.estimate-caption { margin: 8px 0 0; }
+#income-tax-note { margin: 0 0 8px; }
 
-.biz-saving-banner {
-  margin-top: 9px;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 7px 10px;
-  border-radius: 10px;
-  text-align: center;
-  background: rgba(56, 189, 248, 0.14);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+.blue-deadline a, .app-footer a {
   color: #bae6fd;
+  text-underline-offset: 2px;
 }
 
 /* 超特大 3大金額表示（所得税・住民税・国民健康保険料） */
@@ -634,19 +614,6 @@ body.screenshot-view .ledger-section {
   padding: 12px;
   margin-bottom: 14px;
 }
-.income-explanation, .estimate-notice {
-  margin: 16px 0;
-  padding: 16px;
-  border: 1px solid #43627c;
-  border-radius: 14px;
-  background: #122b42;
-  color: #e7f2ff;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.income-explanation p { margin: 8px 0 0; }
-.estimate-notice { font-size: 0.9em; }
-
 .result-card[data-biz-mode='blue'] .big-three-wrapper {
   border-color: rgba(56, 189, 248, 0.55);
   background: rgba(2, 132, 199, 0.14);
@@ -664,16 +631,6 @@ body.screenshot-view .ledger-section {
 .big-three-title {
   font-size: 13px;
   font-weight: 900;
-}
-
-.hero-income-pill {
-  font-size: 11px;
-  font-weight: 800;
-  color: #fde047;
-  background: rgba(250, 204, 21, 0.14);
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  padding: 2px 9px;
-  border-radius: 999px;
 }
 
 .mode-indicator-pill {
