@@ -634,6 +634,18 @@ body.screenshot-view .ledger-section {
   padding: 12px;
   margin-bottom: 14px;
 }
+.income-explanation, .estimate-notice {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #43627c;
+  border-radius: 14px;
+  background: #122b42;
+  color: #e7f2ff;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.income-explanation p { margin: 8px 0 0; }
+.estimate-notice { font-size: 0.9em; }
 
 .result-card[data-biz-mode='blue'] .big-three-wrapper {
   border-color: rgba(56, 189, 248, 0.55);

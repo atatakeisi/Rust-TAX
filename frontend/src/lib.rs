@@ -192,6 +192,12 @@ fn render(a: &App) {
             man(y.business_income)
         ),
     );
+    let salary = if s.has_salary { s.salary_annual.max(0) } else { 0 };
+    text("income-total-formula", format!("収入の合計：配信の振込{} ＋ 給与{} ＝ {}", man(y.gross), man(salary), man(y.gross + salary)));
+    text("income-business-formula", format!("配信の所得：振込{} − 経費{} − 青色申告特別控除{} ＝ {}", man(y.gross), man(y.expense), man(y.blue_deduction), man(y.business_income)));
+    text("income-salary-formula", format!("給与所得：給与{} − 給与所得控除{} ＝ {}", man(salary), man(salary - y.salary_income), man(y.salary_income)));
+    text("income-combined-formula", format!("所得の合計：配信{} ＋ 給与{} ＝ {}。ここから基礎控除などを引いて税額を計算します。", man(y.business_income), man(y.salary_income), man(y.total_income)));
+    text("income-tax-note", if salary > 0 { "下の所得税・住民税は、給与のみの場合と比較して配信により増える分の目安です。給与分を含む税額の総額ではありません。" } else { "下の金額は、入力条件に基づく税金・保険料の目安です。" });
     for (id, n) in [
         ("hero-it-2026", y.income_tax),
         ("hero-rt-2026", y.resident_tax),
