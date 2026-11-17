@@ -591,19 +591,82 @@ body.screenshot-view .ledger-section {
   accent-color: #7dd3fc;
 }
 
-.blue-deadline, .estimate-caption {
+.estimate-caption {
   font-size: 11px;
   line-height: 1.5;
   color: var(--text-muted);
 }
 
-.blue-deadline { margin: 0; }
 .estimate-caption { margin: 8px 0 0; }
 #income-tax-note { margin: 0 0 8px; }
 
-.blue-deadline a, .app-footer a {
+.app-footer a {
   color: #bae6fd;
   text-underline-offset: 2px;
+}
+
+#btn-blue-application {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid #49708c;
+  border-radius: 8px;
+  background: #182b40;
+  color: #bae6fd;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.blue-application-dialog {
+  width: min(440px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #49617e;
+  border-radius: 16px;
+  background: #181b2e;
+  color: #f1f5f9;
+  color-scheme: dark;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.blue-application-dialog::backdrop {
+  background: rgba(5, 6, 12, 0.75);
+}
+
+.blue-application-dialog h3 { margin: 0; }
+.blue-application-dialog p { margin: 6px 0; }
+.blue-application-dialog a { color: #bae6fd; }
+
+.blue-application-result {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #142c44;
+  color: #e0f2fe;
+}
+
+.blue-application-result strong { font-size: 16px; }
+.blue-application-result p { margin-bottom: 0; }
+
+#blue-opening-date {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 4px 0;
+  padding: 6px 8px;
+  border: 1px solid #536b87;
+  border-radius: 8px;
+  background: #101321;
+  color: inherit;
+  font: inherit;
+}
+
+#btn-blue-application-close {
+  min-height: 44px;
+  margin-top: 8px;
 }
 
 /* 超特大 3大金額表示（所得税・住民税・国民健康保険料） */

@@ -31,6 +31,38 @@ click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'250万�
 input('voice-transcript-input','24歳、大阪、去年80万、今年400万、経費60万、青色申告');
 assert.equal($('val-inc-2026').textContent,'400万円');assert.match($('result-meta').textContent,/大阪/);
 assert.equal($('result-card').dataset.bizMode,'white');
+const applicationDialog = $('blue-application-dialog');
+// jsdom does not implement native dialog methods.
+applicationDialog.showModal = () => applicationDialog.setAttribute('open','');
+applicationDialog.close = () => applicationDialog.removeAttribute('open');
+const realNow = Date.now;
+try {
+  Date.now = () => Date.parse('2026-11-17T15:01:00Z');
+  click('#btn-blue-application');
+  assert.equal(applicationDialog.open,true);
+  assert.match($('blue-application-today').textContent,/2026年11月18日/);
+  assert.match($('blue-application-result').textContent,/2027年分から/);
+  input('blue-opening-date','2026-09-18');
+  assert.match($('blue-application-result').textContent,/2026年分から/);
+  assert.match($('blue-application-detail').textContent,/2026年11月18日/);
+  assert.equal($('check-blue-2026').checked,false);
+  Date.now = () => Date.parse('2026-11-18T15:01:00Z');
+  input('blue-opening-date','2026-09-18');
+  assert.match($('blue-application-result').textContent,/2027年分から/);
+  input('blue-opening-date','2026-11-20');
+  assert.match($('blue-application-result').textContent,/開業日を確認/);
+  Date.now = () => Date.parse('2026-09-24T00:00:00Z');
+  input('blue-opening-date','2026-07-22');
+  assert.match($('blue-application-detail').textContent,/2026年9月24日/);
+  Date.now = () => Date.parse('2027-01-15T00:00:00Z');
+  input('blue-opening-date','2026-11-30');
+  assert.match($('blue-application-result').textContent,/2026年分から/);
+  assert.match($('blue-application-detail').textContent,/2027年2月1日/);
+  click('#btn-blue-application-close');
+  assert.equal(applicationDialog.open,false);
+} finally {
+  Date.now = realNow;
+}
 assert.match($('income-white-formula').textContent,/400万円.*60万円.*340万円/);
 assert.match($('income-blue-formula').textContent,/400万円.*60万円.*65万円.*275万円/);
 const whiteIncomeTax = $('hero-it-2026').textContent;

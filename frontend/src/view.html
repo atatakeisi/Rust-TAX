@@ -288,10 +288,10 @@
           <p id="income-combined-formula"></p>
         </div>
         <label class="blue-confirm">
-          <input type="checkbox" id="check-blue-2026" aria-describedby="blue-deadline" />
+          <input type="checkbox" id="check-blue-2026" />
           <span>2026年分の青色申告の承認を受け、65万円控除の要件を満たす見込み</span>
         </label>
-        <p id="blue-deadline" class="blue-deadline">2026年分の申請期限を過ぎた場合は2027年分以降。<a href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm" target="_blank" rel="noopener">申請期限を確認</a></p>
+        <button type="button" id="btn-blue-application" aria-haspopup="dialog">青色申告は何年分から？</button>
       </div>
 
       <!-- 超特大 3大金額表示（所得税・住民税・国民健康保険料） -->
@@ -728,6 +728,20 @@
         </div>
       </div>
     </div>
+
+    <dialog id="blue-application-dialog" class="blue-application-dialog" aria-labelledby="blue-application-title">
+      <h3 id="blue-application-title">青色申告の適用年</h3>
+      <p id="blue-application-today"></p>
+      <div class="blue-application-result" aria-live="polite">
+        <strong id="blue-application-result"></strong>
+        <p id="blue-application-detail"></p>
+      </div>
+      <label for="blue-opening-date">新規開業した場合の開業日（任意）</label>
+      <input type="date" id="blue-opening-date" aria-describedby="blue-opening-help" />
+      <p id="blue-opening-help">空欄の場合は、すでに事業をしている方の原則の期限で計算します。</p>
+      <p>開業届とは別に、青色申告承認申請書の提出が必要です。<a href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm" target="_blank" rel="noopener">国税庁の案内</a></p>
+      <button type="button" id="btn-blue-application-close" class="btn-close-modal" autofocus>閉じる</button>
+    </dialog>
 
     <footer class="app-footer">
       <p><a href="https://github.com/atatakeisi/Rust-TAX/blob/main/DISCLAIMER.md" target="_blank" rel="noopener">ご利用上の注意・免責事項</a></p>

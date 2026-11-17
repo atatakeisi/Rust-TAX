@@ -1,3 +1,4 @@
+mod blue_deadline;
 mod ledger;
 mod parser;
 use ledger::Entry;
@@ -7,7 +8,7 @@ use rust_tax_engine::{
 };
 use std::cell::RefCell;
 use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{Element, HtmlInputElement, HtmlSelectElement, HtmlTextAreaElement};
+use web_sys::{Element, HtmlDialogElement, HtmlInputElement, HtmlSelectElement, HtmlTextAreaElement};
 thread_local! {static APP:RefCell<App>=RefCell::new(App::default());}
 #[derive(Default)]
 struct App {
@@ -62,6 +63,37 @@ fn setval(id: &str, v: impl ToString) {
 }
 fn num(id: &str) -> i64 {
     val(id).parse().unwrap_or(0)
+}
+fn render_blue_deadline() {
+    use blue_deadline::{earliest_year, iso_date, japanese_date, parse_date, today_in_japan};
+
+    let today = today_in_japan();
+    let today_label = japanese_date(&today);
+    text("blue-application-today", format!("{today_label}（日本時間）に提出する場合"));
+    let date_input = el("blue-opening-date");
+    let _ = date_input.set_attribute("max", &iso_date(&today));
+    let raw_opened = val("blue-opening-date");
+    let opened = parse_date(&raw_opened);
+    let (result, detail) = if !raw_opened.is_empty()
+        && !opened.as_ref().is_some_and(|date| date.get_time() <= today.get_time())
+    {
+        (
+            "開業日を確認してください".to_string(),
+            format!("{today_label}以前の日付を入力してください。"),
+        )
+    } else if let Some((year, deadline)) = earliest_year(&today, opened.as_ref()) {
+        (
+            format!("承認された場合、最短で{year}年分から"),
+            format!("{year}年分の申請期限は{}です。", japanese_date(&deadline)),
+        )
+    } else {
+        (
+            "申請期限を税務署にご確認ください".to_string(),
+            "この開業日に対応する休日情報を確認できません。".to_string(),
+        )
+    };
+    text("blue-application-result", result);
+    text("blue-application-detail", detail);
 }
 fn esc(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -462,6 +494,10 @@ fn days() {
 }
 fn update(a: &mut App, id: &str) {
     match id {
+        "blue-opening-date" => {
+            render_blue_deadline();
+            return;
+        }
         "voice-transcript-input" => parser::apply(&val(id), &mut a.input),
         "pref-select" => a.input.prefecture = num(id) as usize,
         "select-start-2025" => a.input.start_month2025 = num(id) as u32,
@@ -673,6 +709,18 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         return Ok(());
     } else {
         match id.as_str() {
+            "btn-blue-application" => {
+                render_blue_deadline();
+                return el("blue-application-dialog")
+                    .unchecked_ref::<HtmlDialogElement>()
+                    .show_modal();
+            }
+            "btn-blue-application-close" => {
+                el("blue-application-dialog")
+                    .unchecked_ref::<HtmlDialogElement>()
+                    .close();
+                return Ok(());
+            }
             "mic-btn" => {
                 toggle_speech(a)?;
                 return Ok(());
