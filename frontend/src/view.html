@@ -1,19 +1,25 @@
 
   <div class="app-shell">
     <header class="top-header">
-      <h1 class="app-title">配信の<span class="grad-text">税金・国保シミュレーター</span></h1>
+      <h1 class="app-title">
+        TikTokライバー<br />
+        <span class="grad-text">税金・国保シミュレーター</span>
+      </h1>
     </header>
 
-    <section class="voice-section" aria-label="収入の入力">
+    <section class="card voice-section" aria-label="収入の入力">
       <button type="button" id="mic-btn" class="mic-hero-btn">
         <span class="mic-emoji" id="mic-emoji" aria-hidden="true">🎙️</span>
-        <span class="mic-label-main" id="mic-label-main">話して試算する</span>
+        <span class="mic-label-main" id="mic-label-main">タップして状況を喋る（録音）</span>
+        <span class="mic-label-sub">「今年の配信収入180万、経費15万」</span>
       </button>
-      <p class="voice-example">「今年の配信収入180万、経費15万」</p>
       <p id="mic-status" class="mic-status hidden" role="status"></p>
 
       <details id="drawer-adjust" class="manual-adjust-drawer">
-        <summary class="fold-summary">手入力・設定</summary>
+        <summary class="manual-adjust-summary">
+          <span class="manual-adjust-label">✏️ <strong>手入力・設定</strong></span>
+          <span class="drawer-hint" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
+        </summary>
         <div class="drawer-body">
           <label class="transcript-label" for="voice-transcript-input">認識した内容・テキスト入力</label>
           <input id="voice-transcript-input" class="transcript-input" type="text"
@@ -188,33 +194,54 @@
         <div><dt>経費</dt><dd id="result-expense">0円</dd></div>
         <div id="result-salary-item" class="hidden"><dt>給与</dt><dd id="result-salary">0円</dd></div>
       </dl>
-      <table class="filing-comparison" aria-labelledby="comparison-title" aria-describedby="comparison-assumption">
-        <thead>
-          <tr><th scope="col">試算項目</th><th scope="col">白色</th><th scope="col">青色</th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">配信所得</th><td id="compare-white-income">0円</td><td id="compare-blue-income">0円</td></tr>
-          <tr><th scope="row">所得税</th><td id="compare-white-it">0円</td><td id="compare-blue-it">0円</td></tr>
-          <tr><th scope="row">住民税</th><td id="compare-white-rt">0円</td><td id="compare-blue-rt">0円</td></tr>
-          <tr><th scope="row">国保</th><td id="compare-white-nhi">0円</td><td id="compare-blue-nhi">0円</td></tr>
-        </tbody>
-      </table>
-      <p id="comparison-assumption" class="estimate-caption">青色は65万円控除の要件を満たす場合の目安です。</p>
-      <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
+      <div class="biz-switch-panel">
+        <h3 class="biz-switch-title">2026年分の配信所得</h3>
+        <div class="income-formulas">
+          <div class="hero-income-pill">
+            <strong>白色申告</strong>
+            <span id="income-white-formula"><span id="income-white-equation"></span><strong id="compare-white-income">0円</strong></span>
+          </div>
+          <div class="hero-income-pill blue-formula">
+            <strong>青色申告</strong>
+            <span id="income-blue-formula"><span id="income-blue-equation"></span><strong id="compare-blue-income">0円</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="big-three-wrapper" aria-describedby="comparison-assumption">
+        <div class="big-three-grid">
+          <div class="big-tax-box">
+            <h3 class="big-tax-label">① 所得税（国税）</h3>
+            <dl class="tax-comparison">
+              <div><dt>白色</dt><dd id="compare-white-it" class="big-tax-value">0円</dd></div>
+              <div><dt>青色</dt><dd id="compare-blue-it" class="big-tax-value">0円</dd></div>
+            </dl>
+          </div>
+          <div class="big-tax-box">
+            <h3 class="big-tax-label">② 住民税（自治体）</h3>
+            <dl class="tax-comparison">
+              <div><dt>白色</dt><dd id="compare-white-rt" class="big-tax-value">0円</dd></div>
+              <div><dt>青色</dt><dd id="compare-blue-rt" class="big-tax-value">0円</dd></div>
+            </dl>
+          </div>
+          <div class="big-tax-box">
+            <h3 class="big-tax-label">③ 国民健康保険料</h3>
+            <dl class="tax-comparison">
+              <div><dt>白色</dt><dd id="compare-white-nhi" class="big-tax-value">0円</dd></div>
+              <div><dt>青色</dt><dd id="compare-blue-nhi" class="big-tax-value">0円</dd></div>
+            </dl>
+          </div>
+        </div>
+        <p id="comparison-assumption" class="estimate-caption">青色は65万円控除の要件を満たす場合の目安です。</p>
+        <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
+      </div>
 
       <details id="drawer-calculation" class="result-fold">
-        <summary class="fold-summary">計算式・青色申告の設定</summary>
+        <summary class="drawer-summary">
+          <strong>計算の内訳・青色申告の設定</strong>
+          <span class="drawer-hint" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
+        </summary>
         <div class="drawer-body">
-          <div class="income-formulas">
-            <div class="hero-income-pill">
-              <strong>白色申告</strong>
-              <span id="income-white-formula"></span>
-            </div>
-            <div class="hero-income-pill blue-formula">
-              <strong>青色申告</strong>
-              <span id="income-blue-formula"></span>
-            </div>
-          </div>
           <div id="income-salary-summary" class="income-salary-summary hidden">
             <p id="income-total-formula"></p>
             <p id="income-salary-formula"></p>
@@ -229,15 +256,18 @@
         </div>
       </details>
 
-      <details id="drawer-details" class="result-fold">
-        <summary class="fold-summary">扶養・納付・共有</summary>
+      <details id="drawer-details" class="result-fold parent-care-drawer">
+        <summary class="drawer-summary parent-care-summary">
+          <strong>👪 扶養・納付・共有</strong>
+          <span class="drawer-hint" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
+        </summary>
         <div class="drawer-body">
           <p id="detail-mode" class="estimate-caption"></p>
           <h3 id="result-headline" class="result-headline">試算中…</h3>
           <p id="result-meta" class="result-meta"></p>
           <div class="shot-actions">
-            <button type="button" id="btn-screenshot-mode" class="mini-action-btn">スクショ表示</button>
-            <button type="button" id="btn-copy-line" class="mini-action-btn primary">LINEコピー</button>
+            <button type="button" id="btn-screenshot-mode" class="mini-action-btn">📸 スクショ1画面</button>
+            <button type="button" id="btn-copy-line" class="mini-action-btn primary">💬 LINEコピー</button>
           </div>
 
           <!-- 手元に残る安全なお金 ＆ 分割で届く納付書の月別備えプラン（一撃総額のショックを和らげる設計） -->
@@ -392,7 +422,10 @@
 
     <section class="ledger-section" aria-label="確定申告・税金管理台帳">
       <details id="drawer-ledger-pro" class="pro-ledger-drawer">
-        <summary class="fold-summary">収支台帳</summary>
+        <summary class="pro-ledger-summary">
+          <strong class="pro-switch-title">収支台帳</strong>
+          <span class="pro-switch-cta" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
+        </summary>
         <div class="pro-ledger-body">
           <p class="ledger-intro">
             日々の売上・毎月の振込額・経費を<strong>1円単位で日付とセットで記帳</strong>すると、確定申告（青色決算書・収支内訳書）に必要な科目別集計と検証表が自動作成されます。

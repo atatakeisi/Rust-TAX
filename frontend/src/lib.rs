@@ -237,22 +237,16 @@ fn render(a: &App) {
         }
     }
     text(
-        "income-white-formula",
-        format!(
-            "振込{} − 経費{} ＝ {}",
-            man(y.gross),
-            man(y.expense),
-            man(white.business_income),
-        ),
+        "income-white-equation",
+        format!("振込{} − 経費{} ＝ ", man(y.gross), man(y.expense)),
     );
     text(
-        "income-blue-formula",
+        "income-blue-equation",
         format!(
-            "振込{} − 経費{} − 青色控除{} ＝ {}",
+            "振込{} − 経費{} − 青色控除{} ＝ ",
             man(blue.gross),
             man(blue.expense),
             man(blue.blue_deduction),
-            man(blue.business_income),
         ),
     );
     let mode = if s.blue_return_2026 { "青色" } else { "白色" };
@@ -774,9 +768,9 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 text(
                     "btn-screenshot-mode",
                     if shot {
-                        "入力画面に戻る"
+                        "✏️ 入力画面に戻る"
                     } else {
-                        "スクショ表示"
+                        "📸 スクショ1画面"
                     },
                 );
                 if shot {
@@ -809,7 +803,7 @@ fn set_speech_state(a: &mut App, state: SpeechState) {
     text(
         "mic-label-main",
         match state {
-            SpeechState::Idle => "話して試算する",
+            SpeechState::Idle => "タップして状況を喋る（録音）",
             SpeechState::Listening => "聞き取り中… タップで停止",
             SpeechState::Stopping => "聞き取りを終了中…",
         },
