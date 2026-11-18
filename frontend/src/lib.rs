@@ -18,7 +18,15 @@ struct App {
     storage_ok: bool,
     storage_protected: bool,
     speech: Option<JsValue>,
-    listening: bool,
+    speech_state: SpeechState,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
+enum SpeechState {
+    #[default]
+    Idle,
+    Listening,
+    Stopping,
 }
 fn doc() -> web_sys::Document {
     web_sys::window().unwrap().document().unwrap()
@@ -791,15 +799,19 @@ fn put(o: &JsValue, k: &str, v: &JsValue) {
 fn call(o: &JsValue, k: &str) -> Result<JsValue, JsValue> {
     get(o, k).dyn_into::<js_sys::Function>()?.call0(o)
 }
-fn speech_ui(on: bool) {
-    class(&el("mic-btn"), "listening", on);
-    text("mic-emoji", if on { "🛑" } else { "🎙️" });
+fn set_speech_state(a: &mut App, state: SpeechState) {
+    a.speech_state = state;
+    let button = el("mic-btn");
+    let listening = state == SpeechState::Listening;
+    class(&button, "listening", listening);
+    let _ = button.toggle_attribute_with_force("disabled", state == SpeechState::Stopping);
+    text("mic-emoji", if listening { "🛑" } else { "🎙️" });
     text(
         "mic-label-main",
-        if on {
-            "聞き取り中… タップで停止"
-        } else {
-            "話して試算する"
+        match state {
+            SpeechState::Idle => "話して試算する",
+            SpeechState::Listening => "聞き取り中… タップで停止",
+            SpeechState::Stopping => "聞き取りを終了中…",
         },
     );
 }
@@ -811,19 +823,23 @@ fn show_comparison() -> Result<(), JsValue> {
     el("drawer-adjust").remove_attribute("open")?;
     el("comparison-title").unchecked_ref::<web_sys::HtmlElement>().focus()
 }
-fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
-    if a.listening {
-        if let Some(r) = &a.speech {
-            let _ = call(r, "stop");
+fn stop_speech(a: &mut App) -> Result<(), JsValue> {
+    if a.speech_state == SpeechState::Listening {
+        if let Some(recognition) = &a.speech {
+            call(recognition, "stop").or_else(|_| call(recognition, "abort"))?;
+            set_speech_state(a, SpeechState::Stopping);
         }
-        a.listening = false;
-        speech_ui(false);
+    }
+    Ok(())
+}
+fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
+    if a.speech_state != SpeechState::Idle {
+        stop_speech(a)?;
         return Ok(());
     }
     if let Some(r) = &a.speech {
         call(r, "start")?;
-        a.listening = true;
-        speech_ui(true);
+        set_speech_state(a, SpeechState::Listening);
         mic_status("");
         return Ok(());
     }
@@ -845,7 +861,7 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
         &js_sys::Array::new(),
     )?;
     put(&r, "lang", &"ja-JP".into());
-    put(&r, "continuous", &true.into());
+    put(&r, "continuous", &false.into());
     put(&r, "interimResults", &true.into());
     let result = Closure::<dyn FnMut(JsValue)>::new(|event: JsValue| {
         let results = get(&event, "results");
@@ -867,10 +883,13 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
     put(&r, "onresult", result.as_ref());
     result.forget();
     let error = Closure::<dyn FnMut(JsValue)>::new(|event: JsValue| {
-        APP.with(|a| a.borrow_mut().listening = false);
-        speech_ui(false);
+        APP.with(|a| set_speech_state(&mut a.borrow_mut(), SpeechState::Idle));
+        let error = get(&event, "error").as_string();
+        if error.as_deref() == Some("aborted") {
+            return;
+        }
         let _ = el("drawer-adjust").set_attribute("open", "");
-        if get(&event, "error").as_string().as_deref() == Some("not-allowed") {
+        if error.as_deref() == Some("not-allowed") {
             mic_status("マイクが許可されていません。下の欄からも入力できます。");
         } else {
             mic_status("音声を認識できませんでした。下の欄からも入力できます。");
@@ -879,15 +898,13 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
     put(&r, "onerror", error.as_ref());
     error.forget();
     let end = Closure::<dyn FnMut()>::new(|| {
-        APP.with(|a| a.borrow_mut().listening = false);
-        speech_ui(false);
+        APP.with(|a| set_speech_state(&mut a.borrow_mut(), SpeechState::Idle));
     });
     put(&r, "onend", end.as_ref());
     end.forget();
     call(&r, "start")?;
     a.speech = Some(r);
-    a.listening = true;
-    speech_ui(true);
+    set_speech_state(a, SpeechState::Listening);
     mic_status("");
     Ok(())
 }
@@ -962,5 +979,19 @@ pub fn start() -> Result<(), JsValue> {
         doc().add_event_listener_with_callback(kind, cb.as_ref().unchecked_ref())?;
         cb.forget();
     }
+    let visibility_change = Closure::<dyn FnMut()>::new(|| {
+        if doc().hidden() {
+            APP.with(|app| {
+                if let Err(error) = stop_speech(&mut app.borrow_mut()) {
+                    web_sys::console::error_1(&error);
+                }
+            });
+        }
+    });
+    doc().add_event_listener_with_callback(
+        "visibilitychange",
+        visibility_change.as_ref().unchecked_ref(),
+    )?;
+    visibility_change.forget();
     Ok(())
 }

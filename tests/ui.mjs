@@ -37,20 +37,35 @@ assert.equal(document.activeElement,$('voice-transcript-input'));
 click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'250万円');
 assert.equal($('drawer-adjust').open,false);
 let recognition;
+let stopCalls = 0;
 window.SpeechRecognition = class {
   constructor() { recognition = this; }
   start() {}
-  stop() {}
+  stop() { stopCalls++; }
 };
 click('#mic-btn');
+assert.equal(recognition.continuous,false);
 recognition.onresult({results:[[{transcript:'今年の配信収入180万、経費15万'}]]});
-click('#mic-btn');
 recognition.onend();
+assert.equal($('mic-btn').disabled,false);
+assert.match($('mic-label-main').textContent,/話して試算/);
 assert.equal($('result-income').textContent,'180万円');
 assert.equal($('result-expense').textContent,'15万円');
 assert.equal($('drawer-adjust').open,false);
 assert.equal($('compare-white-income').textContent,'165万円');
 assert.equal($('compare-blue-income').textContent,'100万円');
+click('#mic-btn');
+click('#mic-btn');
+assert.equal(stopCalls,1);
+assert.equal($('mic-btn').disabled,true);
+assert.match($('mic-label-main').textContent,/終了中/);
+recognition.onend();
+click('#mic-btn');
+Object.defineProperty(document,'hidden',{configurable:true,value:true});
+document.dispatchEvent(new window.Event('visibilitychange'));
+assert.equal(stopCalls,2);
+recognition.onend();
+assert.equal($('mic-btn').disabled,false);
 input('voice-transcript-input','24歳、大阪、去年80万、今年400万、経費60万、青色申告');
 assert.equal($('val-inc-2026').textContent,'400万円');assert.match($('result-meta').textContent,/大阪/);
 assert.equal($('result-card').dataset.bizMode,'white');
