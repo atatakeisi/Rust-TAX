@@ -1,68 +1,44 @@
 
   <div class="app-shell">
-    <!-- プライバシー安心宣言＆Rust/Wasm稼働ステータス -->
     <header class="top-header">
-      <div class="privacy-pill">
-        <span class="lock-icon">🔒</span>
-        <span>入力した収入・地域・台帳データは外部サーバーに一切送信されず、<strong>あなたのスマホ内だけ</strong>で計算・保存されます</span>
-      </div>
-      <div class="brand-row">
-        <div class="brand-badge">LIVE TAX 2025-2026</div>
-        <span id="engine-mode-badge" class="engine-badge">🦀 Rust + Wasm 端末内計算</span>
-      </div>
-      <h1 class="app-title">
-        TikTokライバー<br />
-        <span class="grad-text">税金・国保シミュレーター</span>
-      </h1>
-      <p class="app-subtitle">配信収入から税金・国保と扶養への影響を試算。収支の記録にも。</p>
+      <h1 class="app-title">配信の税金・国保シミュレーター</h1>
     </header>
 
-    <!-- STEP 1: マイク（音声）一発入力セクション -->
-    <section class="card voice-section" aria-label="音声一発入力">
-      <div class="sec-head">
-        <span class="step-num">STEP 1</span>
-        <h2>🎙️ 大きな録音ボタンで一発入力</h2>
-      </div>
-
+    <section class="voice-section" aria-label="収入の入力">
       <button type="button" id="mic-btn" class="mic-hero-btn">
-        <span class="mic-ring"></span>
-        <span class="mic-emoji" id="mic-emoji">🎙️</span>
-        <span class="mic-label-main" id="mic-label-main">タップして状況を喋る（録音）</span>
-        <span class="mic-label-sub" id="mic-label-sub">「20歳、去年10月から50万、今年は250万、経費30万くらい」</span>
-        <!-- マイクが声を拾っているか一目でわかるリアルタイム音量メーター -->
-        <div id="mic-level-wrap" class="mic-level-wrap hidden">
-          <span class="mic-level-caption">マイク感度:</span>
-          <div class="mic-level-track"><div id="mic-level-bar" class="mic-level-bar"></div></div>
-        </div>
+        <span class="mic-emoji" id="mic-emoji" aria-hidden="true">🎙️</span>
+        <span class="mic-label-main" id="mic-label-main">話して試算する</span>
       </button>
+      <p class="voice-example">「今年の配信収入180万、経費15万」</p>
+      <p id="mic-status" class="mic-status hidden" role="status"></p>
 
-      <!-- 録音ボタンの真下に配置したコンパクトな「手入力・スライダー調整用」ドロワー -->
       <details id="drawer-adjust" class="manual-adjust-drawer">
-        <summary class="manual-adjust-summary">
-          <span class="manual-adjust-label">✏️ <strong>手入力用：</strong>声を出さずに「− / ＋」スライダーで金額を調整する</span>
-          <span class="drawer-hint" data-open-text="タップで開く ▼" data-close-text="タップで閉じる ▲">タップで開く ▼</span>
-        </summary>
+        <summary class="fold-summary">手入力・設定</summary>
         <div class="drawer-body">
-          <p class="slider-guide-note">
-            💡 <strong>「−」「＋」ボタン</strong>を押すか、つまみを左右に動かすと金額を微調整できます
-          </p>
+          <label class="transcript-label" for="voice-transcript-input">認識した内容・テキスト入力</label>
+          <input id="voice-transcript-input" class="transcript-input" type="text"
+            placeholder="例：20歳 大阪 去年50万 今年250万 経費30万" />
+          <div class="transcript-actions">
+            <button type="button" class="sample-chip"
+              data-voice-sample="20歳で、去年10月から始めて50万、今年は250万振り込まれて、経費は30万くらい">入力例を試す</button>
+            <button type="button" class="sample-chip" id="btn-show-result">試算を見る</button>
+          </div>
 
           <div class="year-grid">
             <!-- 2026年（今年）ボックス -->
             <div class="year-box year-2026">
               <div class="year-box-header">
                 <span class="year-tag highlight">今年（2026年 1〜12月見込み）</span>
-                <span class="year-rule">令和8年改正（基礎控除 最大104万）</span>
               </div>
 
               <div class="slider-block">
                 <div class="slider-head">
                   <span>💴 今年の振込合計（予想）</span>
-                  <strong id="val-inc-2026" class="slider-val accent">250万円</strong>
+                  <strong id="val-inc-2026" class="slider-val accent">0円</strong>
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-inc-2026" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
-                  <input id="slider-inc-2026" type="range" min="0" max="1000" step="5" value="250" class="touch-slider" />
+                  <input id="slider-inc-2026" aria-label="2026年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-inc-2026" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
                 </div>
                 <div class="quick-chips">
@@ -77,37 +53,34 @@
               <div class="slider-block">
                 <div class="slider-head">
                   <span>🧾 今年の経費概算（機材・衣装・通信費など）</span>
-                  <strong id="val-exp-2026" class="slider-val">30万円</strong>
+                  <strong id="val-exp-2026" class="slider-val">0円</strong>
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-exp-2026" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                  <input id="slider-exp-2026" type="range" min="0" max="500" step="5" value="30" class="touch-slider exp-slider" />
+                  <input id="slider-exp-2026" aria-label="2026年の経費" type="range" min="0" max="500" step="5" value="0" class="touch-slider exp-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-exp-2026" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
                 </div>
               </div>
 
               <div class="income-summary-pill">
                 <span>2026年の配信所得:</span>
-                <strong id="net-2026">220万円</strong>
+                <strong id="net-2026">0円</strong>
                 <small id="blue-tag-2026"></small>
               </div>
             </div>
 
             <!-- 2025年（昨年）ボックス -->
-            <div class="year-box year-2025">
-              <div class="year-box-header">
-                <span class="year-tag">昨年（2025年 1〜12月）</span>
-                <span class="year-rule">令和7年分（基礎控除58〜95万）</span>
-              </div>
+            <details class="year-box year-2025">
+              <summary class="fold-summary">2025年分の入力</summary>
 
               <div class="slider-block">
                 <div class="slider-head">
                   <span>💴 昨年の振込合計</span>
-                  <strong id="val-inc-2025" class="slider-val">50万円</strong>
+                  <strong id="val-inc-2025" class="slider-val">0円</strong>
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-inc-2025" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
-                  <input id="slider-inc-2025" type="range" min="0" max="1000" step="5" value="50" class="touch-slider" />
+                  <input id="slider-inc-2025" aria-label="2025年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-inc-2025" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
                 </div>
                 <div class="quick-chips">
@@ -126,7 +99,7 @@
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-exp-2025" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                  <input id="slider-exp-2025" type="range" min="0" max="300" step="5" value="0" class="touch-slider exp-slider" />
+                  <input id="slider-exp-2025" aria-label="2025年の経費" type="range" min="0" max="300" step="5" value="0" class="touch-slider exp-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-exp-2025" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
                 </div>
               </div>
@@ -138,7 +111,7 @@
                     <option value="0">1月から（通年）</option>
                     <option value="4">4月から</option>
                     <option value="7">7月から</option>
-                    <option value="10" selected>10月から</option>
+                    <option value="10">10月から</option>
                     <option value="11">11月から</option>
                     <option value="12">12月から</option>
                   </select>
@@ -155,239 +128,178 @@
 
               <div class="income-summary-pill">
                 <span>2025年の配信所得:</span>
-                <strong id="net-2025">50万円</strong>
+                <strong id="net-2025">0円</strong>
                 <small id="blue-tag-2025"></small>
+              </div>
+            </details>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">年齢区分（2026年時点）</span>
+            <div class="seg-group cols-3">
+              <button type="button" class="seg-btn" data-age-group="u18">
+                <span class="seg-main">18歳以下</span>
+              </button>
+              <button type="button" class="seg-btn active" data-age-group="student">
+                <span class="seg-main">19〜22歳</span>
+              </button>
+              <button type="button" class="seg-btn" data-age-group="adult">
+                <span class="seg-main">23歳以上</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">給与（バイト・会社員）</span>
+            <div class="seg-group cols-2">
+              <button type="button" class="seg-btn active" data-has-salary="false">
+                <span class="seg-main">なし（配信のみ）</span>
+              </button>
+              <button type="button" class="seg-btn" data-has-salary="true">
+                <span class="seg-main">あり（バイト・会社員）</span>
+              </button>
+            </div>
+
+            <div id="salary-detail-box" class="sub-slider-box hidden">
+              <div class="slider-head">
+                <span>バイト・給与の年額（額面）</span>
+                <strong id="val-salary" class="slider-val">80万円</strong>
+              </div>
+              <div class="pm-slider-row">
+                <button type="button" class="pm-btn minus" data-step-target="slider-salary" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
+                <input id="slider-salary" aria-label="バイト・給与の年額" type="range" min="0" max="500" step="5" value="80" class="touch-slider" />
+                <button type="button" class="pm-btn plus" data-step-target="slider-salary" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
               </div>
             </div>
           </div>
+
+          <div class="field-group">
+            <label class="field-label" for="pref-select">国保の試算に使う都道府県</label>
+            <select id="pref-select" class="select-box"></select>
+          </div>
         </div>
       </details>
-
-      <p id="mic-status" class="mic-status">
-        🛡️ 身バレ防止のため、地域を言わなくても<strong>「全国平均（匿名モード）」</strong>で安全に一撃計算します
-      </p>
-
-      <div class="voice-samples">
-        <button
-          type="button"
-          class="sample-chip"
-          data-voice-sample="20歳で、去年10月から始めて50万、今年は250万振り込まれて、経費は30万くらい"
-        >
-          🔥 例1: 20歳・全国平均・去年50万→今年250万
-        </button>
-        <button
-          type="button"
-          class="sample-chip"
-          data-voice-sample="大学生、バイト月6万、去年はゼロで今年140万、経費25万"
-        >
-          🎓 例2: 学生・バイト月6万＋今年140万
-        </button>
-        <button
-          type="button"
-          class="sample-chip"
-          data-voice-sample="24歳、配信のみで去年80万、今年400万、経費60万"
-        >
-          💎 例3: 24歳・専業・今年400万
-        </button>
-      </div>
-
-      <label class="transcript-label" for="voice-transcript-input">
-        認識テキスト（ここを直接書き換えても自動反映されます）
-      </label>
-      <input
-        id="voice-transcript-input"
-        class="transcript-input"
-        type="text"
-        value="20歳で、去年10月から始めて50万、今年は250万振り込まれて、経費は30万くらい"
-        placeholder="例：20歳 去年50万 今年250万 経費30万"
-      />
-      <div id="detected-tags" class="detected-tags"></div>
-    </section>
-
-    <!-- STEP 2: 最小限のプロフィール選択（身バレ防止・全国平均デフォルト） -->
-    <section class="card input-section" aria-label="基本プロフィール選択">
-      <div class="sec-head">
-        <span class="step-num">STEP 2</span>
-        <h2>🛡️ 身バレ防止プロフィール選択</h2>
-        <span class="privacy-mini-tag">地域初期値＝全国平均</span>
-      </div>
-
-      <div class="field-group">
-        <span class="field-label">🎂 年齢区分（2026年時点）</span>
-        <div class="seg-group cols-3">
-          <button type="button" class="seg-btn" data-age-group="u18">
-            <span class="seg-main">18歳以下</span>
-            <span class="seg-sub">高校生など</span>
-          </button>
-          <button type="button" class="seg-btn active" data-age-group="student">
-            <span class="seg-main">19〜22歳</span>
-            <span class="seg-sub">学生等（150万壁）</span>
-          </button>
-          <button type="button" class="seg-btn" data-age-group="adult">
-            <span class="seg-main">23歳以上</span>
-            <span class="seg-sub">一般（130万壁）</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <span class="field-label">💼 本業（バイト・会社員給与）の有無</span>
-        <div class="seg-group cols-2">
-          <button type="button" class="seg-btn active" data-has-salary="false">
-            <span class="seg-main">なし（配信のみ）</span>
-            <span class="seg-sub">ライバー専業・学生</span>
-          </button>
-          <button type="button" class="seg-btn" data-has-salary="true">
-            <span class="seg-main">あり（バイト・会社員）</span>
-            <span class="seg-sub">給与＋配信の副業</span>
-          </button>
-        </div>
-
-        <div id="salary-detail-box" class="sub-slider-box hidden">
-          <div class="slider-head">
-            <span>バイト・給与の年額（額面）</span>
-            <strong id="val-salary" class="slider-val">80万円</strong>
-          </div>
-          <div class="pm-slider-row">
-            <button type="button" class="pm-btn minus" data-step-target="slider-salary" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-            <input id="slider-salary" type="range" min="0" max="500" step="5" value="80" class="touch-slider" />
-            <button type="button" class="pm-btn plus" data-step-target="slider-salary" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
-          </div>
-        </div>
-      </div>
     </section>
 
     <section id="result-card" class="result-card" data-overall="out" data-biz-mode="white" aria-label="試算結果">
-      <div class="shot-card-header">
-        <div class="shot-header-top">
-          <span class="shot-tag">📱 スクショして保存・LINEで送れる診断書</span>
-          <div class="shot-actions">
-            <button type="button" id="btn-screenshot-mode" class="mini-action-btn">📸 スクショ1画面</button>
-            <button type="button" id="btn-copy-line" class="mini-action-btn primary">💬 LINEコピー</button>
-          </div>
-        </div>
-        <h2 id="result-headline" class="result-headline">診断中…</h2>
-        <p id="result-meta" class="result-meta"></p>
-      </div>
+      <h2 id="comparison-title" class="comparison-title" tabindex="-1">2026年分の試算</h2>
+      <dl class="input-totals">
+        <div><dt>配信収入</dt><dd id="result-income">0円</dd></div>
+        <div><dt>経費</dt><dd id="result-expense">0円</dd></div>
+        <div id="result-salary-item" class="hidden"><dt>給与</dt><dd id="result-salary">0円</dd></div>
+      </dl>
+      <table class="filing-comparison" aria-labelledby="comparison-title" aria-describedby="comparison-assumption">
+        <thead>
+          <tr><th scope="col">試算項目</th><th scope="col">白色</th><th scope="col">青色</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">配信所得</th><td id="compare-white-income">0円</td><td id="compare-blue-income">0円</td></tr>
+          <tr><th scope="row">所得税</th><td id="compare-white-it">0円</td><td id="compare-blue-it">0円</td></tr>
+          <tr><th scope="row">住民税</th><td id="compare-white-rt">0円</td><td id="compare-blue-rt">0円</td></tr>
+          <tr><th scope="row">国保</th><td id="compare-white-nhi">0円</td><td id="compare-blue-nhi">0円</td></tr>
+        </tbody>
+      </table>
+      <p id="comparison-assumption" class="estimate-caption">青色は65万円控除の要件を満たす場合の目安です。</p>
+      <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
 
-      <div class="biz-switch-panel">
-        <h3 class="biz-switch-title">2026年分の配信所得</h3>
-        <div class="income-formulas">
-          <div class="hero-income-pill">
-            <strong>白色申告</strong>
-            <span id="income-white-formula"></span>
-          </div>
-          <div class="hero-income-pill blue-formula">
-            <strong>青色申告（65万円控除の要件を満たす場合）</strong>
-            <span id="income-blue-formula"></span>
-          </div>
-        </div>
-        <div id="income-salary-summary" class="income-salary-summary hidden">
-          <p id="income-total-formula"></p>
-          <p id="income-salary-formula"></p>
-          <p id="income-combined-formula"></p>
-        </div>
-        <label class="blue-confirm">
-          <input type="checkbox" id="check-blue-2026" />
-          <span>2026年分の青色申告の承認を受け、65万円控除の要件を満たす見込み</span>
-        </label>
-        <button type="button" id="btn-blue-application" aria-haspopup="dialog">青色申告は何年分から？</button>
-      </div>
-
-      <!-- 超特大 3大金額表示（所得税・住民税・国民健康保険料） -->
-      <div class="big-three-wrapper">
-        <div class="big-three-header">
-          <span id="hero-cost-title" class="big-three-title">2026年分の負担目安（白色）</span>
-        </div>
-        <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
-        <div class="big-three-grid">
-          <div class="big-tax-box">
-            <span class="big-tax-label">① 所得税（国税）</span>
-            <strong id="hero-it-2026" class="big-tax-value">0円</strong>
-            <small id="hero-it-sub" class="big-tax-sub">基礎控除104万円適用</small>
-          </div>
-          <div class="big-tax-box">
-            <span class="big-tax-label">② 住民税（自治体）</span>
-            <strong id="hero-rt-2026" class="big-tax-value">0円</strong>
-            <small id="hero-rt-sub" class="big-tax-sub">翌年6月から通知</small>
-          </div>
-          <div class="big-tax-box">
-            <span class="big-tax-label">③ 国民健康保険料</span>
-            <strong id="hero-nhi-2026" class="big-tax-value">0円</strong>
-            <small id="hero-nhi-sub" class="big-tax-sub">全国平均（身バレ防止）</small>
-          </div>
-        </div>
-        <p class="estimate-caption">入力条件に基づく概算です。申告・納付前は税務署などにご確認ください。</p>
-      </div>
-
-      <!-- 手元に残る安全なお金 ＆ 分割で届く納付書の月別備えプラン（一撃総額のショックを和らげる設計） -->
-      <div class="money-split-grid">
-        <div class="money-card safe-card">
-          <div class="money-card-label">💰 手元に残る安全なお金</div>
-          <div class="money-card-sub">売上から経費・税金・国保を引いた自由に使えるお金</div>
-          <div id="free-money-amount" class="money-card-big">0円</div>
-          <div id="free-money-exact" class="money-card-exact"></div>
-          <div class="aside-tip">✨ 収入が増えるほど、手元に残るお金も増えます</div>
-        </div>
-
-        <div class="money-card reserve-card">
-          <div class="money-card-label">📮 役所から届く納付書への備え（分割払いの目安）</div>
-          <div class="money-card-sub">一度に全額は来ません！時期が来たら順番に払えるようよけておく目安</div>
-          <div class="reserve-monthly-row">
-            <span class="reserve-monthly-caption">月ならし目安</span>
-            <strong id="reserve-monthly-amount" class="money-card-big">月 0円</strong>
-            <span class="reserve-monthly-Sub">（振込の <strong id="aside-percent">15%</strong> を別口座へ）</span>
-          </div>
-          <ul id="payment-schedule-list" class="payment-schedule-list">
-            <li>📅 <strong>3月（所得税）</strong>: <span id="sched-it">0円</span></li>
-            <li>📅 <strong>6月〜年4回（住民税）</strong>: <span id="sched-rt">1回 0円</span></li>
-            <li>📅 <strong>6月〜月々（国保・全10回）</strong>: <span id="sched-nhi">1回 0円</span></li>
-          </ul>
-          <div class="reserve-year-total">
-            <span>年間合計の現実ライン:</span>
-            <strong id="lock-total-amount">0円</strong>
-            <small id="lock-total-exact"></small>
-          </div>
-        </div>
-      </div>
-
-      <!-- 親の扶養サマリーバー（1行で直感把握） -->
-      <div class="quick-fuyo-bar">
-        <div class="fuyo-pill-item">
-          <span class="fuyo-pill-label">今年(2026) 税の扶養:</span>
-          <span id="dep-tax-badge-2026" class="status-badge">判定中</span>
-        </div>
-        <div class="fuyo-pill-item">
-          <span class="fuyo-pill-label">今年(2026) 保険証:</span>
-          <span id="dep-ins-badge-2026" class="status-badge">判定中</span>
-        </div>
-        <div class="fuyo-pill-item">
-          <span class="fuyo-pill-label">昨年(2025) 税の扶養:</span>
-          <span id="dep-tax-badge-2025" class="status-badge">判定中</span>
-        </div>
-        <div class="fuyo-pill-item">
-          <span class="fuyo-pill-label">昨年(2025) 保険証:</span>
-          <span id="dep-ins-badge-2025" class="status-badge">判定中</span>
-        </div>
-      </div>
-
-      <!-- 2025年分の無申告・期限後申告アラート（該当する場合のみ表示） -->
-      <div id="late-filing-banner" class="late-alert-box hidden">
-        <div class="late-alert-title">🚨 2025年（昨年）分の期限後申告が必要です</div>
-        <p id="late-filing-msg" class="late-alert-msg"></p>
-        <div id="late-filing-numbers" class="late-alert-num"></div>
-      </div>
-
-      <!-- 親に迷惑をかけないための「親の扶養＆やるべきこと詳細」目立つ展開ボタン -->
-      <details id="drawer-details" class="collapsible-drawer parent-care-drawer">
-        <summary class="drawer-summary parent-care-summary">
-          <div class="parent-care-left">
-            <span class="parent-care-badge">👪 親に迷惑をかけないために重要！</span>
-            <strong class="parent-care-title">親の扶養（税金・保険証）の影響額とやるべきことリストを見る</strong>
-          </div>
-          <span class="drawer-hint" data-open-text="タップで開く ▼" data-close-text="タップで閉じる ▲">タップで開く ▼</span>
-        </summary>
+      <details id="drawer-calculation" class="result-fold">
+        <summary class="fold-summary">計算式・青色申告の設定</summary>
         <div class="drawer-body">
+          <div class="income-formulas">
+            <div class="hero-income-pill">
+              <strong>白色申告</strong>
+              <span id="income-white-formula"></span>
+            </div>
+            <div class="hero-income-pill blue-formula">
+              <strong>青色申告</strong>
+              <span id="income-blue-formula"></span>
+            </div>
+          </div>
+          <div id="income-salary-summary" class="income-salary-summary hidden">
+            <p id="income-total-formula"></p>
+            <p id="income-salary-formula"></p>
+            <p id="income-combined-formula"></p>
+          </div>
+          <p id="income-tax-basis" class="estimate-caption"></p>
+          <label class="blue-confirm">
+            <input type="checkbox" id="check-blue-2026" />
+            <span>2026年分は青色65万円控除で詳細を試算する</span>
+          </label>
+          <button type="button" id="btn-blue-application" aria-haspopup="dialog">青色申告は何年分から？</button>
+        </div>
+      </details>
+
+      <details id="drawer-details" class="result-fold">
+        <summary class="fold-summary">扶養・納付・共有</summary>
+        <div class="drawer-body">
+          <p id="detail-mode" class="estimate-caption"></p>
+          <h3 id="result-headline" class="result-headline">試算中…</h3>
+          <p id="result-meta" class="result-meta"></p>
+          <div class="shot-actions">
+            <button type="button" id="btn-screenshot-mode" class="mini-action-btn">スクショ表示</button>
+            <button type="button" id="btn-copy-line" class="mini-action-btn primary">LINEコピー</button>
+          </div>
+
+          <!-- 手元に残る安全なお金 ＆ 分割で届く納付書の月別備えプラン（一撃総額のショックを和らげる設計） -->
+          <div class="money-split-grid">
+            <div class="money-card safe-card">
+              <div class="money-card-label">💰 手元に残る安全なお金</div>
+              <div class="money-card-sub">売上から経費・税金・国保を引いた自由に使えるお金</div>
+              <div id="free-money-amount" class="money-card-big">0円</div>
+              <div id="free-money-exact" class="money-card-exact"></div>
+              <div class="aside-tip">✨ 収入が増えるほど、手元に残るお金も増えます</div>
+            </div>
+
+            <div class="money-card reserve-card">
+              <div class="money-card-label">📮 役所から届く納付書への備え（分割払いの目安）</div>
+              <div class="money-card-sub">一度に全額は来ません！時期が来たら順番に払えるようよけておく目安</div>
+              <div class="reserve-monthly-row">
+                <span class="reserve-monthly-caption">月ならし目安</span>
+                <strong id="reserve-monthly-amount" class="money-card-big">月 0円</strong>
+                <span class="reserve-monthly-Sub">（振込の <strong id="aside-percent">15%</strong> を別口座へ）</span>
+              </div>
+              <ul id="payment-schedule-list" class="payment-schedule-list">
+                <li>📅 <strong>3月（所得税）</strong>: <span id="sched-it">0円</span></li>
+                <li>📅 <strong>6月〜年4回（住民税）</strong>: <span id="sched-rt">1回 0円</span></li>
+                <li>📅 <strong>6月〜月々（国保・全10回）</strong>: <span id="sched-nhi">1回 0円</span></li>
+              </ul>
+              <div class="reserve-year-total">
+                <span>年間合計の現実ライン:</span>
+                <strong id="lock-total-amount">0円</strong>
+                <small id="lock-total-exact"></small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 親の扶養サマリーバー（1行で直感把握） -->
+          <div class="quick-fuyo-bar">
+            <div class="fuyo-pill-item">
+              <span class="fuyo-pill-label">今年(2026) 税の扶養:</span>
+              <span id="dep-tax-badge-2026" class="status-badge">判定中</span>
+            </div>
+            <div class="fuyo-pill-item">
+              <span class="fuyo-pill-label">今年(2026) 保険証:</span>
+              <span id="dep-ins-badge-2026" class="status-badge">判定中</span>
+            </div>
+            <div class="fuyo-pill-item">
+              <span class="fuyo-pill-label">昨年(2025) 税の扶養:</span>
+              <span id="dep-tax-badge-2025" class="status-badge">判定中</span>
+            </div>
+            <div class="fuyo-pill-item">
+              <span class="fuyo-pill-label">昨年(2025) 保険証:</span>
+              <span id="dep-ins-badge-2025" class="status-badge">判定中</span>
+            </div>
+          </div>
+
+          <!-- 2025年分の無申告・期限後申告アラート（該当する場合のみ表示） -->
+          <div id="late-filing-banner" class="late-alert-box hidden">
+            <div class="late-alert-title">🚨 2025年（昨年）分の期限後申告が必要です</div>
+            <p id="late-filing-msg" class="late-alert-msg"></p>
+            <div id="late-filing-numbers" class="late-alert-num"></div>
+          </div>
+
+          <!-- 親に迷惑をかけないための「親の扶養＆やるべきこと詳細」目立つ展開ボタン -->
+
           <!-- 親の扶養アラート詳細（2025年・2026年） -->
           <div class="diag-block">
             <h3 class="diag-title">👪 【親の扶養アラート詳細】2025年・2026年</h3>
@@ -478,30 +390,13 @@
       </details>
     </section>
 
-    <!-- STEP 4: 普段は格納されている「やる気スイッチ（1円単位でキチッと管理＆自分で確定申告したい前向きな人向け）」 -->
-    <section class="card ledger-section" aria-label="確定申告・税金管理台帳">
+    <section class="ledger-section" aria-label="確定申告・税金管理台帳">
       <details id="drawer-ledger-pro" class="pro-ledger-drawer">
-        <summary class="pro-ledger-summary">
-          <div class="pro-switch-left">
-            <span class="pro-switch-badge">🔥 やる気スイッチ ON</span>
-            <strong class="pro-switch-title">1円単位でキチッと管理＆自分で確定申告する（精密台帳を開く）</strong>
-            <span class="pro-switch-sub">普段は閉じていてOK！自分で帳簿をつけて節税・確定申告したい前向きな人向けの専用エリア</span>
-          </div>
-          <span class="pro-switch-cta" data-open-text="タップで開く ▼" data-close-text="タップで閉じる ▲">タップで開く ▼</span>
-        </summary>
-
+        <summary class="fold-summary">収支台帳</summary>
         <div class="pro-ledger-body">
           <p class="ledger-intro">
             日々の売上・毎月の振込額・経費を<strong>1円単位で日付とセットで記帳</strong>すると、確定申告（青色決算書・収支内訳書）に必要な科目別集計と検証表が自動作成されます。
           </p>
-
-          <!-- 台帳専用：正確な都道府県別の国保料率設定（普段の初期値は全国平均） -->
-          <div class="ledger-pref-box">
-            <label class="field-label" for="pref-select">
-              📍 【精密モード用】正確な都道府県別の国保料率を選択（初期値は身バレ防止の「全国平均」）
-            </label>
-            <select id="pref-select" class="select-box"></select>
-          </div>
 
           <!-- 日付つき仕訳入力フォーム（押した「❓」ボタンの真上に吹き出しが出て、入力欄を一切隠さない設計） -->
           <form id="ledger-form" class="ledger-form" novalidate>
@@ -745,7 +640,8 @@
 
     <footer class="app-footer">
       <p><a href="https://github.com/atatakeisi/Rust-TAX/blob/main/DISCLAIMER.md" target="_blank" rel="noopener">ご利用上の注意・免責事項</a></p>
-      <p>🔒 完全クライアントサイド動作（GitHub Pages対応） | 端末内計算・音声認識はブラウザ提供機能</p>
+      <p>表示額は概算です。申告・納付前は税務署などにご確認ください。</p>
+      <p>計算と台帳の保存は端末内で行います。音声認識はブラウザ提供サービスを使用する場合があります。</p>
     </footer>
   </div>
 

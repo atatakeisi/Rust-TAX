@@ -210,19 +210,31 @@ fn render(a: &App) {
             out.prefecture_name, out.prefecture_city, s.age
         ),
     );
-    let blue_case = (!s.blue_return_2026).then(|| {
-        let mut scenario = s.clone();
-        scenario.blue_return_2026 = true;
-        diagnose(&scenario)
-    });
-    let blue = blue_case.as_ref().map_or(y, |scenario| &scenario.years[1]);
+    let mut scenario = s.clone();
+    scenario.blue_return_2026 = !s.blue_return_2026;
+    let alternate = diagnose(&scenario);
+    let (white, blue) = if s.blue_return_2026 {
+        (&alternate.years[1], y)
+    } else {
+        (y, &alternate.years[1])
+    };
+    for (column, values) in [("white", white), ("blue", blue)] {
+        for (row, amount) in [
+            ("income", values.business_income),
+            ("it", values.income_tax),
+            ("rt", values.resident_tax),
+            ("nhi", values.nhi),
+        ] {
+            text(&format!("compare-{column}-{row}"), man(amount));
+        }
+    }
     text(
         "income-white-formula",
         format!(
             "振込{} − 経費{} ＝ {}",
             man(y.gross),
             man(y.expense),
-            man(y.gross - y.expense),
+            man(white.business_income),
         ),
     );
     text(
@@ -236,8 +248,12 @@ fn render(a: &App) {
         ),
     );
     let mode = if s.blue_return_2026 { "青色" } else { "白色" };
-    text("hero-cost-title", format!("2026年分の負担目安（{mode}）"));
+    text("detail-mode", format!("2026年分の詳細（{mode}）"));
     let salary = s.salary_annual.max(0);
+    text("result-income", man(y.gross));
+    text("result-expense", man(y.expense));
+    text("result-salary", man(salary));
+    hidden("result-salary-item", !s.has_salary);
     hidden("income-salary-summary", !s.has_salary);
     hidden("income-tax-note", !s.has_salary || salary == 0);
     if s.has_salary {
@@ -270,24 +286,19 @@ fn render(a: &App) {
         );
     }
     for (id, n) in [
-        ("hero-it-2026", y.income_tax),
-        ("hero-rt-2026", y.resident_tax),
-        ("hero-nhi-2026", y.nhi),
         ("lock-total-amount", out.lock_total),
         ("free-money-amount", out.free_money),
     ] {
         text(id, man(n));
     }
     text(
-        "hero-it-sub",
+        "income-tax-basis",
         format!(
-            "基礎控除{} / 課税所得{}",
+            "{mode}の所得税　基礎控除 {}・課税所得 {}",
             man(y.basic_deduction),
             man(y.taxable_income)
         ),
     );
-    text("hero-rt-sub", &y.resident_tax_label);
-    text("hero-nhi-sub", &out.prefecture_name);
     text(
         "reserve-monthly-amount",
         format!("月 約{}", man((out.lock_total + 1199) / 1200 * 100)),
@@ -354,19 +365,6 @@ fn render(a: &App) {
             .iter()
             .map(|n| format!("<li>{}</li>", esc(n)))
             .collect::<String>(),
-    );
-    html(
-        "detected-tags",
-        &[
-            format!("{}歳", s.age),
-            out.prefecture_name,
-            format!("2025年振込 {}", man(s.income2025)),
-            format!("2026年振込 {}", man(s.income2026)),
-            format!("今年経費 {}", man(s.expense2026)),
-        ]
-        .iter()
-        .map(|x| format!("<span class='detected-chip'>{}</span>", esc(x)))
-        .collect::<String>(),
     );
     render_ledger(a);
 }
@@ -626,6 +624,9 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
     } else if let Some(v) = attr("data-voice-sample") {
         setval("voice-transcript-input", &v);
         parser::apply(&v, &mut a.input);
+        mic_status("");
+        render(a);
+        return show_comparison();
     } else if let Some(v) = attr("data-quick-2025") {
         a.input.income2025 = v.parse::<i64>().unwrap_or(0) * 10000;
     } else if let Some(v) = attr("data-quick-2026") {
@@ -709,6 +710,10 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         return Ok(());
     } else {
         match id.as_str() {
+            "btn-show-result" => {
+                mic_status("");
+                return show_comparison();
+            }
             "btn-blue-application" => {
                 render_blue_deadline();
                 return el("blue-application-dialog")
@@ -761,9 +766,9 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 text(
                     "btn-screenshot-mode",
                     if shot {
-                        "✏️ 入力画面に戻る"
+                        "入力画面に戻る"
                     } else {
-                        "📸 スクショ1画面"
+                        "スクショ表示"
                     },
                 );
                 if shot {
@@ -792,12 +797,19 @@ fn speech_ui(on: bool) {
     text(
         "mic-label-main",
         if on {
-            "聞き取り中… 話し終わったらタップ"
+            "聞き取り中… タップで停止"
         } else {
-            "タップして状況を喋る"
+            "話して試算する"
         },
     );
-    hidden("mic-level-wrap", true);
+}
+fn mic_status(message: &str) {
+    text("mic-status", message);
+    hidden("mic-status", message.is_empty());
+}
+fn show_comparison() -> Result<(), JsValue> {
+    el("drawer-adjust").remove_attribute("open")?;
+    el("comparison-title").unchecked_ref::<web_sys::HtmlElement>().focus()
 }
 fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
     if a.listening {
@@ -812,6 +824,7 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
         call(r, "start")?;
         a.listening = true;
         speech_ui(true);
+        mic_status("");
         return Ok(());
     }
     let win = JsValue::from(web_sys::window().unwrap());
@@ -820,10 +833,11 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
         ctor = get(&win, "webkitSpeechRecognition");
     }
     if !ctor.is_function() {
+        el("drawer-adjust").set_attribute("open", "")?;
         el("voice-transcript-input")
             .unchecked_ref::<web_sys::HtmlElement>()
             .focus()?;
-        text("mic-status","ブラウザの音声認識に非対応です。キーボードの音声入力、例文、テキスト入力をご利用ください。");
+        mic_status("このブラウザでは、下の欄に入力してください。");
         return Ok(());
     }
     let r = js_sys::Reflect::construct(
@@ -855,7 +869,12 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
     let error = Closure::<dyn FnMut(JsValue)>::new(|event: JsValue| {
         APP.with(|a| a.borrow_mut().listening = false);
         speech_ui(false);
-        text("mic-status",format!("音声認識を利用できません（{}）。テキスト欄やキーボードの音声入力をお使いください。",get(&event,"error").as_string().unwrap_or_default()));
+        let _ = el("drawer-adjust").set_attribute("open", "");
+        if get(&event, "error").as_string().as_deref() == Some("not-allowed") {
+            mic_status("マイクが許可されていません。下の欄からも入力できます。");
+        } else {
+            mic_status("音声を認識できませんでした。下の欄からも入力できます。");
+        }
     });
     put(&r, "onerror", error.as_ref());
     error.forget();
@@ -869,23 +888,12 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
     a.speech = Some(r);
     a.listening = true;
     speech_ui(true);
-    text(
-        "mic-status",
-        "聞き取り中です。停止するにはもう一度タップしてください。",
-    );
+    mic_status("");
     Ok(())
 }
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {
     el("app").set_inner_html(include_str!("view.html"));
-    text(
-        "engine-mode-badge",
-        "🦀 画面・台帳・診断すべて Rust / WebAssembly",
-    );
-    // Speech recognition can use the browser vendor's service; calculations and ledger remain local.
-    each(".privacy-pill", |e| {
-        e.set_text_content(Some("🔒 計算・台帳保存はこの端末内。音声認識はブラウザ提供サービスを使用する場合があります。"))
-    });
     html(
         "pref-select",
         &rust_tax_engine::prefectures::NHI_TABLE
@@ -909,10 +917,6 @@ pub fn start() -> Result<(), JsValue> {
     APP.with(|app| {
         let mut a = app.borrow_mut();
         a.year = 2026;
-        a.input.income2025 = 500000;
-        a.input.income2026 = 2500000;
-        a.input.expense2026 = 300000;
-        a.input.start_month2025 = 10;
         let deadline = js_sys::Date::new(&"2026-03-16T00:00:00+09:00".into()).get_time();
         a.input.days_since_2025_deadline = ((js_sys::Date::now() - deadline) / 86400000.).floor().max(0.) as i64;
         let storage = web_sys::window().unwrap().local_storage().ok().flatten();
@@ -949,7 +953,7 @@ pub fn start() -> Result<(), JsValue> {
                     .ok()
                     .flatten();
                 if let Some(e) = e {
-                    APP.with(|a|{if let Err(err)=click(&mut a.borrow_mut(),e){web_sys::console::error_1(&err);text("mic-status","操作を完了できませんでした。入力内容とブラウザの権限を確認してください。");}});
+                    APP.with(|a|{if let Err(err)=click(&mut a.borrow_mut(),e){web_sys::console::error_1(&err);mic_status("操作を完了できませんでした。");}});
                 }
             } else {
                 APP.with(|a| update(&mut a.borrow_mut(), &target.id()));
@@ -958,26 +962,5 @@ pub fn start() -> Result<(), JsValue> {
         doc().add_event_listener_with_callback(kind, cb.as_ref().unchecked_ref())?;
         cb.forget();
     }
-    // Native <details> controls keep working without rebuilding the form.
-    let toggle = Closure::<dyn FnMut(web_sys::Event)>::new(|event: web_sys::Event| {
-        if let Some(target) = event.target().and_then(|t| t.dyn_into::<Element>().ok()) {
-            if target.tag_name() == "DETAILS" {
-                if let Ok(Some(hint)) = target.query_selector("[data-open-text]") {
-                    let key = if target.has_attribute("open") {
-                        "data-close-text"
-                    } else {
-                        "data-open-text"
-                    };
-                    hint.set_text_content(hint.get_attribute(key).as_deref());
-                }
-            }
-        }
-    });
-    doc().add_event_listener_with_callback_and_bool(
-        "toggle",
-        toggle.as_ref().unchecked_ref(),
-        true,
-    )?;
-    toggle.forget();
     Ok(())
 }

@@ -42,14 +42,17 @@ body {
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* スクショ用1画面表示モード時は入力・台帳セクションを隠して結果カードだけ最上部に表示 */
 body.screenshot-view .top-header,
 body.screenshot-view .voice-section,
-body.screenshot-view .input-section,
-body.screenshot-view .ledger-section {
+body.screenshot-view .ledger-section,
+body.screenshot-view .app-footer,
+body.screenshot-view #drawer-calculation,
+body.screenshot-view #drawer-details > summary,
+body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   display: none;
 }
 
@@ -57,130 +60,32 @@ body.screenshot-view .ledger-section {
   display: none !important;
 }
 
-/* ヘッダー＆プライバシー安心宣言 */
+/* タイトルと音声入力 */
 .top-header {
-  text-align: center;
-  padding: 6px 4px 4px;
-}
-
-.privacy-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.45);
-  color: #a7f3d0;
-  font-size: 11.5px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.brand-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-
-.brand-badge {
-  background: linear-gradient(90deg, var(--tiktok-cyan), var(--tiktok-pink));
-  color: #090a10;
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  padding: 3px 10px;
-  border-radius: 999px;
-}
-
-.engine-badge {
-  font-size: 11px;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.06);
-  padding: 3px 9px;
-  border-radius: 999px;
+  padding: 4px 0 0;
 }
 
 .app-title {
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1.25;
-  margin-bottom: 6px;
-}
-
-.grad-text {
-  background: linear-gradient(90deg, #00f2fe 0%, #ff4b91 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.app-subtitle {
-  font-size: 12.5px;
-  color: var(--text-muted);
-}
-
-/* 共通カード */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-}
-
-.sec-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.step-num {
-  background: rgba(0, 242, 254, 0.15);
-  color: var(--tiktok-cyan);
-  border: 1px solid rgba(0, 242, 254, 0.4);
-  font-size: 10.5px;
+  font-size: clamp(18px, 5.2vw, 24px);
   font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.sec-head h2 {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.privacy-mini-tag {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  padding: 2px 8px;
-  border-radius: 999px;
+  line-height: 1.3;
 }
 
 /* マイク一発入力ボタン */
 .mic-hero-btn {
-  position: relative;
-  width: 100%;
-  border: none;
-  border-radius: 18px;
-  padding: 18px 14px;
-  background: linear-gradient(135deg, #fe0979 0%, #ff6a00 100%);
-  color: #fff;
-  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 8px 24px rgba(254, 9, 121, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 62px;
+  padding: 10px 14px;
+  border: 1px solid #5ee2ec;
+  border-radius: 14px;
+  background: #71e6ec;
+  color: #162437;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .mic-hero-btn:active {
@@ -188,79 +93,31 @@ body.screenshot-view .ledger-section {
 }
 
 .mic-hero-btn.listening {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  animation: pulse-ring 1.3s infinite;
-}
-
-@keyframes pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(244, 63, 94, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
-  }
+  background: #ffd0d8;
+  border-color: #fda4af;
+  color: #3b1524;
 }
 
 .mic-emoji {
-  font-size: 32px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .mic-label-main {
-  font-size: 17px;
-  font-weight: 900;
-}
-
-.mic-label-sub {
-  font-size: 11.5px;
-  opacity: 0.92;
-}
-
-.mic-level-wrap {
-  width: 85%;
-  max-width: 320px;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.35);
-  padding: 5px 10px;
-  border-radius: 999px;
-}
-
-.mic-level-caption {
-  font-size: 10.5px;
+  font-size: 16px;
   font-weight: 800;
-  white-space: nowrap;
 }
 
-.mic-level-track {
-  flex: 1;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.mic-level-bar {
-  height: 100%;
-  width: 4%;
-  background: linear-gradient(90deg, #10b981, #00f2fe, #fde047);
-  border-radius: 999px;
-  transition: width 0.06s linear;
-}
-
-.mic-status {
-  font-size: 11.5px;
+.voice-example, .mic-status {
+  margin: 7px 0 9px;
   color: var(--text-muted);
-  margin: 10px 0 8px;
   text-align: center;
+  font-size: 12px;
 }
 
-.voice-samples {
+.mic-status { color: #fcd9a8; }
+
+.transcript-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -274,6 +131,7 @@ body.screenshot-view .ledger-section {
   color: var(--text-main);
   font-size: 11.5px;
   padding: 7px 10px;
+  min-height: 40px;
   border-radius: 10px;
   cursor: pointer;
   text-align: left;
@@ -298,23 +156,6 @@ body.screenshot-view .ledger-section {
   font-size: 13px;
   padding: 10px 12px;
   border-radius: 10px;
-}
-
-.detected-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.detected-chip {
-  background: rgba(0, 242, 254, 0.14);
-  border: 1px solid rgba(0, 242, 254, 0.4);
-  color: #a5f3fc;
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
 }
 
 /* STEP 2 ワンタップ選択 */
@@ -438,6 +279,7 @@ body.screenshot-view .ledger-section {
 .touch-slider {
   flex: 1 1 auto;
   width: 100%;
+  min-width: 0;
   height: 10px;
   accent-color: var(--tiktok-pink);
   cursor: grab;
@@ -451,45 +293,87 @@ body.screenshot-view .ledger-section {
   accent-color: var(--tiktok-cyan);
 }
 
-/* STEP 3 診断結果カード（ヒーロー表示＆青色/白色色分け） */
+/* 試算結果 */
 .result-card {
-  background: linear-gradient(180deg, #191b30 0%, #121324 100%);
-  border: 2px solid rgba(255, 255, 255, 0.22);
-  border-radius: 22px;
-  padding: 16px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #1a1d30;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 14px;
 }
 
-/* 青色モード選択時はカード全体を鮮やかなブルー基調に発光させて視覚的に一発識別 */
-.result-card[data-biz-mode='blue'] {
-  background: linear-gradient(180deg, #0f253e 0%, #0d1627 100%);
-  border-color: #38bdf8;
-  box-shadow: 0 16px 42px rgba(56, 189, 248, 0.28);
-}
-
-.result-card[data-biz-mode='white'] {
-  background: linear-gradient(180deg, #212438 0%, #141626 100%);
-  border-color: rgba(226, 232, 240, 0.45);
-}
-
-.shot-header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+.comparison-title {
+  font-size: 16px;
+  font-weight: 800;
   margin-bottom: 8px;
 }
 
-.shot-tag {
-  font-size: 11px;
+.input-totals {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 4px;
+  margin-bottom: 10px;
+}
+
+.input-totals div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.input-totals dt {
   color: var(--text-muted);
+  font-size: 12px;
+}
+
+.input-totals dd {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.filing-comparison {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.filing-comparison th,
+.filing-comparison td {
+  padding: 6px 7px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.filing-comparison th {
+  text-align: left;
+  font-size: 12px;
+}
+
+.filing-comparison thead th {
+  color: var(--text-muted);
+}
+
+.filing-comparison thead th:not(:first-child),
+.filing-comparison td {
+  width: 34%;
+  text-align: right;
+}
+
+.filing-comparison td {
+  font-size: 15px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.filing-comparison :is(th, td):last-child {
+  background: rgba(56, 189, 248, 0.08);
+  color: #bae6fd;
 }
 
 .shot-actions {
   display: flex;
   gap: 6px;
+  margin-bottom: 12px;
 }
 
 .mini-action-btn {
@@ -520,20 +404,6 @@ body.screenshot-view .ledger-section {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 12px;
-}
-
-/* 配信所得の比較と青色控除の適用条件 */
-.biz-switch-panel {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-
-.biz-switch-title {
-  font-size: 14px;
-  margin: 0 0 8px;
 }
 
 .income-formulas {
@@ -598,7 +468,7 @@ body.screenshot-view .ledger-section {
 }
 
 .estimate-caption { margin: 8px 0 0; }
-#income-tax-note { margin: 0 0 8px; }
+#income-tax-note { margin-top: 3px; }
 
 .app-footer a {
   color: #bae6fd;
@@ -667,95 +537,6 @@ body.screenshot-view .ledger-section {
 #btn-blue-application-close {
   min-height: 44px;
   margin-top: 8px;
-}
-
-/* 超特大 3大金額表示（所得税・住民税・国民健康保険料） */
-.big-three-wrapper {
-  background: rgba(0, 0, 0, 0.32);
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-.result-card[data-biz-mode='blue'] .big-three-wrapper {
-  border-color: rgba(56, 189, 248, 0.55);
-  background: rgba(2, 132, 199, 0.14);
-}
-
-.big-three-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.big-three-title {
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.mode-indicator-pill {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 3px 10px;
-  border-radius: 999px;
-}
-
-.mode-indicator-pill.white {
-  background: #f1f5f9;
-  color: #0f172a;
-}
-
-.mode-indicator-pill.blue {
-  background: #0284c7;
-  color: #ffffff;
-}
-
-.big-three-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-@media (max-width: 460px) {
-  .big-three-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.big-tax-box {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 13px;
-  padding: 10px 8px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.big-tax-label {
-  font-size: 11.5px;
-  font-weight: 800;
-  color: var(--text-muted);
-}
-
-.big-tax-value {
-  font-size: 23px;
-  font-weight: 900;
-  color: #fde047;
-  line-height: 1.2;
-}
-
-.result-card[data-biz-mode='blue'] .big-tax-value {
-  color: #7dd3fc;
-}
-
-.big-tax-sub {
-  font-size: 10px;
-  color: var(--text-muted);
 }
 
 /* 手元に残る安全なお金 ＆ 分割で届く納付書への備えプラン */
@@ -924,121 +705,29 @@ body.screenshot-view .ledger-section {
   color: var(--text-muted);
 }
 
-/* STEP 1 録音ボタンの真下に配置したコンパクトな「手入力用（スライダー微調整）」ドロワー */
-.manual-adjust-drawer {
-  margin: 8px 0 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(0, 242, 254, 0.45);
+/* 手入力・結果詳細・台帳の開閉 */
+.manual-adjust-drawer, .ledger-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  overflow: hidden;
 }
 
-.manual-adjust-summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 9px 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+.result-fold {
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.fold-summary {
+  min-height: 43px;
+  padding: 11px 12px;
   color: #e2e8f0;
-}
-
-.manual-adjust-summary::-webkit-details-marker {
-  display: none;
-}
-
-.manual-adjust-label strong {
-  color: var(--tiktok-cyan);
-}
-
-/* 親に迷惑をかけないための「親の扶養＆やるべきこと詳細」目立つ展開ボタン */
-.parent-care-drawer {
-  margin-top: 12px;
-  border: 2px solid rgba(245, 158, 11, 0.65);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(244, 63, 94, 0.14) 100%);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.18);
-}
-
-.parent-care-summary {
-  padding: 13px 14px;
-  background: transparent;
-}
-
-.parent-care-left {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.parent-care-badge {
-  display: inline-block;
-  align-self: flex-start;
-  background: linear-gradient(90deg, #f59e0b, #f43f5e);
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 900;
-  padding: 2px 9px;
-  border-radius: 999px;
-}
-
-.parent-care-title {
-  font-size: 13.5px;
-  font-weight: 900;
-  color: #fef3c7;
-}
-
-.parent-care-drawer .drawer-hint {
-  background: #f59e0b;
-  color: #090a10;
-  font-weight: 900;
-}
-
-.parent-care-drawer[open] .drawer-hint {
-  background: rgba(255, 255, 255, 0.18);
-  color: #f8fafc;
-}
-
-/* 折りたたみドロワー（普段は格納、展開ボタンで開く） */
-.collapsible-drawer {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 14px;
-  margin-top: 10px;
-  overflow: hidden;
-}
-
-.drawer-summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 12px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
   font-size: 13px;
-  font-weight: 800;
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.drawer-summary::-webkit-details-marker {
-  display: none;
-}
-
-.drawer-hint {
-  font-size: 11px;
-  color: var(--tiktok-cyan);
-  background: rgba(0, 242, 254, 0.14);
-  padding: 3px 9px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.collapsible-drawer[open] .drawer-hint {
-  background: rgba(254, 9, 121, 0.2);
-  color: #fda4af;
+.fold-summary::marker {
+  color: #a5d5e7;
 }
 
 .drawer-body {
@@ -1046,21 +735,12 @@ body.screenshot-view .ledger-section {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.slider-guide-note {
-  font-size: 12px;
-  color: #fde047;
-  background: rgba(250, 204, 21, 0.1);
-  border: 1px solid rgba(250, 204, 21, 0.3);
-  padding: 7px 10px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-}
-
 /* 年度別スライダー（ドロワー内） */
 .year-grid {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-bottom: 14px;
 }
 
 .year-box {
@@ -1072,6 +752,18 @@ body.screenshot-view .ledger-section {
 
 .year-box.year-2026 {
   border-color: rgba(0, 242, 254, 0.4);
+}
+
+.year-box.year-2025 {
+  padding: 0 14px;
+}
+
+.year-box.year-2025 > summary {
+  padding-inline: 0;
+}
+
+.year-box.year-2025[open] {
+  padding-bottom: 14px;
 }
 
 .year-box-header {
@@ -1094,11 +786,6 @@ body.screenshot-view .ledger-section {
 .year-tag.highlight {
   background: rgba(0, 242, 254, 0.2);
   color: var(--tiktok-cyan);
-}
-
-.year-rule {
-  font-size: 11px;
-  color: var(--text-muted);
 }
 
 .slider-block {
@@ -1427,82 +1114,6 @@ body.screenshot-view .ledger-section {
   gap: 4px;
 }
 
-/* STEP 4: 普段は格納されている「🔥やる気スイッチ（1円単位・確定申告精密台帳）」 */
-.ledger-section {
-  border-color: rgba(56, 189, 248, 0.4);
-  padding: 0;
-  overflow: visible;
-}
-
-.pro-ledger-drawer {
-  width: 100%;
-}
-
-.pro-ledger-summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(37, 99, 235, 0.16) 100%);
-  border-radius: var(--radius-lg);
-  transition: background 0.15s ease;
-}
-
-.pro-ledger-summary::-webkit-details-marker {
-  display: none;
-}
-
-.pro-ledger-summary:hover {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.32) 0%, rgba(37, 99, 235, 0.24) 100%);
-}
-
-.pro-switch-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.pro-switch-badge {
-  display: inline-block;
-  align-self: flex-start;
-  background: linear-gradient(90deg, #f59e0b, #fe0979);
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 900;
-  padding: 2px 9px;
-  border-radius: 999px;
-}
-
-.pro-switch-title {
-  font-size: 15px;
-  font-weight: 900;
-  color: #f8fafc;
-}
-
-.pro-switch-sub {
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.pro-switch-cta {
-  flex: 0 0 auto;
-  background: var(--tiktok-cyan);
-  color: #090a10;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 6px 12px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.pro-ledger-drawer[open] .pro-switch-cta {
-  background: rgba(255, 255, 255, 0.14);
-  color: #f8fafc;
-}
-
 .pro-ledger-body {
   padding: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
@@ -1512,14 +1123,6 @@ body.screenshot-view .ledger-section {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 12px;
-}
-
-.ledger-pref-box {
-  background: rgba(56, 189, 248, 0.08);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 14px;
-  padding: 11px 12px;
-  margin-bottom: 14px;
 }
 
 .ledger-form {

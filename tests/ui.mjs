@@ -22,12 +22,35 @@ if (corrupt) {
   console.log('Corrupt stored ledger protected from overwrite.');
   process.exit(0);
 }
-assert.match($('engine-mode-badge').textContent,/すべて Rust/);
+assert.equal($('result-income').textContent,'0円');
+for (const id of ['drawer-adjust','drawer-calculation','drawer-details','drawer-ledger-pro']) {
+  assert.equal($(id).open,false);
+}
+assert.equal($('compare-white-nhi').closest('details'),null);
 assert.equal($('pref-select').options.length,48);
 assert.equal($('lv-total-inc').textContent,'123,456円');
 assert.equal($('ledger-entries-tbody').querySelector('img'),null);
 input('pref-select','0','change');assert.match($('result-meta').textContent,/北海道/);
+click('#mic-btn');
+assert.equal($('drawer-adjust').open,true);
+assert.equal(document.activeElement,$('voice-transcript-input'));
 click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'250万円');
+assert.equal($('drawer-adjust').open,false);
+let recognition;
+window.SpeechRecognition = class {
+  constructor() { recognition = this; }
+  start() {}
+  stop() {}
+};
+click('#mic-btn');
+recognition.onresult({results:[[{transcript:'今年の配信収入180万、経費15万'}]]});
+click('#mic-btn');
+recognition.onend();
+assert.equal($('result-income').textContent,'180万円');
+assert.equal($('result-expense').textContent,'15万円');
+assert.equal($('drawer-adjust').open,false);
+assert.equal($('compare-white-income').textContent,'165万円');
+assert.equal($('compare-blue-income').textContent,'100万円');
 input('voice-transcript-input','24歳、大阪、去年80万、今年400万、経費60万、青色申告');
 assert.equal($('val-inc-2026').textContent,'400万円');assert.match($('result-meta').textContent,/大阪/);
 assert.equal($('result-card').dataset.bizMode,'white');
@@ -65,19 +88,25 @@ try {
 }
 assert.match($('income-white-formula').textContent,/400万円.*60万円.*340万円/);
 assert.match($('income-blue-formula').textContent,/400万円.*60万円.*65万円.*275万円/);
-const whiteIncomeTax = $('hero-it-2026').textContent;
+const whiteIncomeTax = $('compare-white-it').textContent;
+const blueIncomeTax = $('compare-blue-it').textContent;
+assert.notEqual(blueIncomeTax,whiteIncomeTax);
+assert.equal($('bd-it-2026').textContent,whiteIncomeTax);
+const comparisonCells = [...document.querySelectorAll('.filing-comparison td')];
+const comparisonAmounts = comparisonCells.map(cell => cell.textContent);
 const previousIncome = $('net-2025').textContent;
 click('#check-blue-2026');
 assert.equal($('result-card').dataset.bizMode,'blue');
 assert.equal($('net-2026').textContent,'275万円');
-assert.notEqual($('hero-it-2026').textContent,whiteIncomeTax);
+assert.equal($('bd-it-2026').textContent,blueIncomeTax);
+assert.deepEqual(comparisonCells.map(cell => cell.textContent),comparisonAmounts);
 assert.equal($('net-2025').textContent,previousIncome);
 click('#check-blue-2026');
-assert.equal($('hero-it-2026').textContent,whiteIncomeTax);
+assert.equal($('bd-it-2026').textContent,whiteIncomeTax);
 click('#check-filed-2025');
 click('#check-blue-2025');
 assert.notEqual($('net-2025').textContent,previousIncome);
-assert.equal($('hero-it-2026').textContent,whiteIncomeTax);
+assert.equal($('bd-it-2026').textContent,whiteIncomeTax);
 click('#check-filed-2025');
 assert.equal($('net-2025').textContent,previousIncome);
 click('[data-step-target="slider-inc-2026"][data-step-delta="10"]');assert.equal($('val-inc-2026').textContent,'410万円');
