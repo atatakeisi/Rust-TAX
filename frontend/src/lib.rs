@@ -1,4 +1,5 @@
 mod blue_deadline;
+mod guide_dialog;
 mod guidance;
 mod ledger;
 mod parser;
@@ -24,6 +25,7 @@ struct App {
     demo: Option<DemoBackup>,
     checked: Checked,
     guidance_storage_ok: bool,
+    guide_dialog: Option<guide_dialog::State>,
 }
 
 struct DemoBackup {
@@ -399,10 +401,6 @@ fn render_guidance(a: &App, out: &DiagnoseOutput) {
     };
     hidden("insurance-estimate-note", coverage == "unknown");
     setval("guide-health-coverage", coverage);
-    if !entered {
-        return;
-    }
-
     let steps = guidance::steps(&a.input, out);
     let mut next = None;
     let mut checked_count = 0;
@@ -446,13 +444,17 @@ fn render_guidance(a: &App, out: &DiagnoseOutput) {
         text("next-step-badge", "入力例");
         el("next-step-badge").set_class_name("status-badge badge-caution");
     }
-    let (target, title, preview) = next.map_or(
-        ("ledger", "振込や経費を台帳に記録する", "振込明細や領収書と一緒に、まず1件だけ残しましょう。"),
-        |step| (step.topic.id(), step.title, step.preview),
+    let (page, target, title, preview) = next.map_or(
+        (guide_dialog::Page::Ledger, "ledger", "振込や経費を台帳に記録する", "振込明細や領収書と一緒に、まず1件だけ残しましょう。"),
+        |step| (guide_dialog::Page::Topic(step.topic), step.topic.id(), step.title, step.preview),
     );
+    let (category, label) = page.category();
+    let _ = el("next-step").set_attribute("data-guide-category", category);
+    text("next-step-category", label);
     text("next-step-copy", preview);
     text("btn-next-step", title);
     let _ = el("btn-next-step").set_attribute("data-guide-open", target);
+    guide_dialog::update_title(a);
 }
 fn save_guidance(a: &mut App) {
     if a.guidance_storage_ok {
@@ -464,14 +466,6 @@ fn save_guidance(a: &mut App) {
             })
             .is_some();
     }
-}
-fn open_disclosure(id: &str) -> Result<(), JsValue> {
-    let drawer = el(id);
-    drawer.set_attribute("open", "")?;
-    if let Some(summary) = drawer.query_selector("summary")? {
-        summary.unchecked_ref::<web_sys::HtmlElement>().focus()?;
-    }
-    Ok(())
 }
 fn end_demo(a: &mut App) {
     if let Some(backup) = a.demo.take() {
@@ -643,6 +637,9 @@ fn update(a: &mut App, id: &str) {
     render(a);
 }
 fn add_entry(a: &mut App) {
+    if a.demo.is_some() && guide_dialog::current(a) == Some(guide_dialog::Page::Ledger) {
+        return;
+    }
     if a.storage_protected {
         feedback("保存済みデータの読み込みに失敗したため、上書きを停止しています。");
         return;
@@ -735,22 +732,19 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
     let attr = |k: &str| e.get_attribute(k);
     if let Some(topic) = attr("data-guide-open") {
         if topic == "ledger" {
-            return open_disclosure("drawer-ledger-pro");
+            return guide_dialog::open(a, guide_dialog::Page::Ledger, e);
         }
-        if Topic::ALL.iter().any(|item| item.id() == topic) {
-            el("drawer-next-steps").set_attribute("open", "")?;
-            return open_disclosure(&format!("guide-{topic}"));
+        if let Some(topic) = Topic::ALL.into_iter().find(|item| item.id() == topic) {
+            return guide_dialog::open(a, guide_dialog::Page::Topic(topic), e);
         }
     } else if let Some(target) = attr("data-guide-target") {
-        return match target.as_str() {
-            "prior-return" => {
-                el("drawer-adjust").set_attribute("open", "")?;
-                open_disclosure("drawer-input-2025")
-            }
-            "ledger" => open_disclosure("drawer-ledger-pro"),
-            "blue" => open_blue_dialog(),
-            _ => Ok(()),
+        let page = match target.as_str() {
+            "prior-return" => guide_dialog::Page::PriorInput,
+            "ledger" => guide_dialog::Page::Ledger,
+            "blue" => guide_dialog::Page::BlueDeadline,
+            _ => return Ok(()),
         };
+        return guide_dialog::open(a, page, e);
     } else if let Some(topic) = attr("data-guide-check") {
         if a.demo.is_none() {
             let out = diagnose(&a.input);
@@ -873,6 +867,8 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         return Ok(());
     } else {
         match id.as_str() {
+            "guide-dialog-close" => return guide_dialog::close(a),
+            "guide-dialog-back" => return guide_dialog::back(a),
             "btn-end-demo" | "btn-end-demo-adjust" => {
                 end_demo(a);
                 render(a);
@@ -898,6 +894,10 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 return Ok(());
             }
             "btn-sync-ledger-to-diag" => {
+                let in_guide = guide_dialog::current(a) == Some(guide_dialog::Page::Ledger);
+                if in_guide && a.demo.is_some() {
+                    return Ok(());
+                }
                 end_demo(a);
                 let x = ledger::summarize(&a.entries, 2025);
                 let y = ledger::summarize(&a.entries, 2026);
@@ -905,6 +905,10 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 a.input.expense2025 = x.expense;
                 a.input.income2026 = y.income;
                 a.input.expense2026 = y.expense;
+                if in_guide {
+                    render(a);
+                    return guide_dialog::close(a);
+                }
                 el("result-card").scroll_into_view();
             }
             "btn-export-csv" => return download(a),
@@ -1151,6 +1155,20 @@ pub fn start() -> Result<(), JsValue> {
         doc().add_event_listener_with_callback(kind, cb.as_ref().unchecked_ref())?;
         cb.forget();
     }
+    let guide_closed = Closure::<dyn FnMut()>::new(|| {
+        if !guide_dialog::element().open() {
+            APP.with(|app| {
+                if let Err(error) = guide_dialog::finish(&mut app.borrow_mut()) {
+                    web_sys::console::error_1(&error);
+                }
+            });
+        }
+    });
+    guide_dialog::element().add_event_listener_with_callback(
+        "close",
+        guide_closed.as_ref().unchecked_ref(),
+    )?;
+    guide_closed.forget();
     let visibility_change = Closure::<dyn FnMut()>::new(|| {
         if doc().hidden() {
             APP.with(|app| {

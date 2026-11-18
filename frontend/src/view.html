@@ -86,64 +86,67 @@
             <!-- 2025年（昨年）ボックス -->
             <details id="drawer-input-2025" class="year-box year-2025">
               <summary class="fold-summary">2025年分の入力</summary>
+              <div id="prior-year-fields-home">
+              <fieldset id="prior-year-fields" class="adjust-fields" aria-label="2025年分の配信収入と申告状況">
+                <div class="slider-block">
+                  <div class="slider-head">
+                    <span>💴 昨年の振込合計</span>
+                    <strong id="val-inc-2025" class="slider-val">0円</strong>
+                  </div>
+                  <div class="pm-slider-row">
+                    <button type="button" class="pm-btn minus" data-step-target="slider-inc-2025" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
+                    <input id="slider-inc-2025" aria-label="2025年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
+                    <button type="button" class="pm-btn plus" data-step-target="slider-inc-2025" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
+                  </div>
+                  <div class="quick-chips">
+                    <button type="button" data-quick-2025="0">0円</button>
+                    <button type="button" data-quick-2025="50">50万</button>
+                    <button type="button" data-quick-2025="100">100万</button>
+                    <button type="button" data-quick-2025="150">150万</button>
+                    <button type="button" data-quick-2025="300">300万</button>
+                  </div>
+                </div>
 
-              <div class="slider-block">
-                <div class="slider-head">
-                  <span>💴 昨年の振込合計</span>
-                  <strong id="val-inc-2025" class="slider-val">0円</strong>
+                <div class="slider-block">
+                  <div class="slider-head">
+                    <span>🧾 昨年の経費概算（機材・衣装など）</span>
+                    <strong id="val-exp-2025" class="slider-val">0万円</strong>
+                  </div>
+                  <div class="pm-slider-row">
+                    <button type="button" class="pm-btn minus" data-step-target="slider-exp-2025" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
+                    <input id="slider-exp-2025" aria-label="2025年の経費" type="range" min="0" max="300" step="5" value="0" class="touch-slider exp-slider" />
+                    <button type="button" class="pm-btn plus" data-step-target="slider-exp-2025" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
+                  </div>
                 </div>
-                <div class="pm-slider-row">
-                  <button type="button" class="pm-btn minus" data-step-target="slider-inc-2025" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
-                  <input id="slider-inc-2025" aria-label="2025年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
-                  <button type="button" class="pm-btn plus" data-step-target="slider-inc-2025" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
-                </div>
-                <div class="quick-chips">
-                  <button type="button" data-quick-2025="0">0円</button>
-                  <button type="button" data-quick-2025="50">50万</button>
-                  <button type="button" data-quick-2025="100">100万</button>
-                  <button type="button" data-quick-2025="150">150万</button>
-                  <button type="button" data-quick-2025="300">300万</button>
-                </div>
-              </div>
 
-              <div class="slider-block">
-                <div class="slider-head">
-                  <span>🧾 昨年の経費概算（機材・衣装など）</span>
-                  <strong id="val-exp-2025" class="slider-val">0万円</strong>
+                <div class="year-options-row">
+                  <label class="mini-label">
+                    開始時期:
+                    <select id="select-start-2025" class="mini-select">
+                      <option value="0">1月から（通年）</option>
+                      <option value="4">4月から</option>
+                      <option value="7">7月から</option>
+                      <option value="10">10月から</option>
+                      <option value="11">11月から</option>
+                      <option value="12">12月から</option>
+                    </select>
+                  </label>
+                  <label class="mini-check">
+                    <input type="checkbox" id="check-filed-2025" />
+                    <span>2025年分は申告済み</span>
+                  </label>
+                  <label id="blue-option-2025" class="mini-check hidden">
+                    <input type="checkbox" id="check-blue-2025" />
+                    <span>2025年分は期限内に青色申告し、65万円控除を適用した</span>
+                  </label>
                 </div>
-                <div class="pm-slider-row">
-                  <button type="button" class="pm-btn minus" data-step-target="slider-exp-2025" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                  <input id="slider-exp-2025" aria-label="2025年の経費" type="range" min="0" max="300" step="5" value="0" class="touch-slider exp-slider" />
-                  <button type="button" class="pm-btn plus" data-step-target="slider-exp-2025" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
+
+                <div class="income-summary-pill">
+                  <span>2025年の配信所得:</span>
+                  <strong id="net-2025">0円</strong>
+                  <small id="blue-tag-2025"></small>
                 </div>
-              </div>
-
-              <div class="year-options-row">
-                <label class="mini-label">
-                  開始時期:
-                  <select id="select-start-2025" class="mini-select">
-                    <option value="0">1月から（通年）</option>
-                    <option value="4">4月から</option>
-                    <option value="7">7月から</option>
-                    <option value="10">10月から</option>
-                    <option value="11">11月から</option>
-                    <option value="12">12月から</option>
-                  </select>
-                </label>
-                <label class="mini-check">
-                  <input type="checkbox" id="check-filed-2025" />
-                  <span>2025年分は申告済み</span>
-                </label>
-                <label id="blue-option-2025" class="mini-check hidden">
-                  <input type="checkbox" id="check-blue-2025" />
-                  <span>2025年分は期限内に青色申告し、65万円控除を適用した</span>
-                </label>
-              </div>
-
-              <div class="income-summary-pill">
-                <span>2025年の配信所得:</span>
-                <strong id="net-2025">0円</strong>
-                <small id="blue-tag-2025"></small>
+              </fieldset>
               </div>
             </details>
           </div>
@@ -250,10 +253,11 @@
       <section id="next-step" class="next-step hidden" aria-labelledby="next-step-title">
         <div class="next-step-header">
           <h3 id="next-step-title">次の一歩</h3>
+          <span id="next-step-category" class="guide-category-label"></span>
           <span id="next-step-badge" class="status-badge hidden"></span>
         </div>
         <p id="next-step-copy"></p>
-        <button type="button" id="btn-next-step" class="mini-action-btn next-step-primary"></button>
+        <button type="button" id="btn-next-step" class="mini-action-btn next-step-primary" aria-haspopup="dialog"></button>
       </section>
 
       <details id="drawer-next-steps" class="result-fold hidden">
@@ -263,76 +267,40 @@
         </summary>
         <p id="guidance-note" class="estimate-caption"></p>
         <ul class="guidance-list">
-          <li class="guidance-item">
-            <details id="guide-prior-return" class="guidance-task">
-              <summary class="guidance-task-summary"><span id="guide-title-prior-return"></span><span id="guide-status-prior-return" class="status-badge"></span></summary>
-              <div class="guidance-task-body">
-                <p id="guide-copy-prior-return"></p>
-                <div class="guidance-controls">
-                  <button type="button" class="mini-action-btn" data-guide-target="prior-return">2025年分の入力を確認</button>
-                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm" target="_blank" rel="noopener">国税庁の期限後申告案内</a>
-                  <button type="button" id="guide-check-prior-return" class="mini-action-btn" data-guide-check="prior-return"></button>
-                </div>
-              </div>
-            </details>
+          <li class="guidance-item" data-guide-category="tax">
+            <button type="button" id="guide-prior-return" class="guidance-task-summary" data-guide-open="prior-return" aria-haspopup="dialog">
+              <span class="guide-category-label">所得税</span>
+              <span id="guide-title-prior-return" class="guide-task-title"></span>
+              <span id="guide-status-prior-return" class="status-badge"></span>
+            </button>
           </li>
-          <li class="guidance-item">
-            <details id="guide-health" class="guidance-task">
-              <summary class="guidance-task-summary"><span id="guide-title-health"></span><span id="guide-status-health" class="status-badge"></span></summary>
-              <div class="guidance-task-body">
-                <p id="guide-copy-health"></p>
-                <div class="guidance-controls">
-                  <label for="guide-health-coverage">いま入っている保険</label>
-                  <select id="guide-health-coverage" class="select-box">
-                    <option value="unknown">分からない・その他</option>
-                    <option value="dependent">親などの健康保険の扶養</option>
-                    <option value="employer">勤務先の健康保険</option>
-                    <option value="national">国民健康保険</option>
-                  </select>
-                  <a href="https://www.kyoukaikenpo.or.jp/faq/dependent_status/" target="_blank" rel="noopener">協会けんぽの扶養確認</a>
-                  <a href="https://www.city.shizuoka.lg.jp/s8435/s000658.html" target="_blank" rel="noopener">国保の手続き例（静岡市）</a>
-                  <button type="button" id="guide-check-health" class="mini-action-btn" data-guide-check="health"></button>
-                </div>
-              </div>
-            </details>
+          <li class="guidance-item" data-guide-category="health">
+            <button type="button" id="guide-health" class="guidance-task-summary" data-guide-open="health" aria-haspopup="dialog">
+              <span class="guide-category-label">健康保険</span>
+              <span id="guide-title-health" class="guide-task-title"></span>
+              <span id="guide-status-health" class="status-badge"></span>
+            </button>
           </li>
-          <li class="guidance-item">
-            <details id="guide-resident" class="guidance-task">
-              <summary class="guidance-task-summary"><span id="guide-title-resident"></span><span id="guide-status-resident" class="status-badge"></span></summary>
-              <div class="guidance-task-body">
-                <p id="guide-copy-resident"></p>
-                <div class="guidance-controls">
-                  <a href="https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/zeikin/y-shizei/kojin-shiminzei-kenminzei/kojin-shiminzei-shosai/shinkokunouzei.html" target="_blank" rel="noopener">住民税の通知と納付方法の例（横浜市）</a>
-                  <button type="button" id="guide-check-resident" class="mini-action-btn" data-guide-check="resident"></button>
-                </div>
-              </div>
-            </details>
+          <li class="guidance-item" data-guide-category="resident">
+            <button type="button" id="guide-resident" class="guidance-task-summary" data-guide-open="resident" aria-haspopup="dialog">
+              <span class="guide-category-label">住民税</span>
+              <span id="guide-title-resident" class="guide-task-title"></span>
+              <span id="guide-status-resident" class="status-badge"></span>
+            </button>
           </li>
-          <li class="guidance-item">
-            <details id="guide-income-tax" class="guidance-task">
-              <summary class="guidance-task-summary"><span id="guide-title-income-tax"></span><span id="guide-status-income-tax" class="status-badge"></span></summary>
-              <div class="guidance-task-body">
-                <p id="guide-copy-income-tax"></p>
-                <div class="guidance-controls">
-                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm" target="_blank" rel="noopener">国税庁の確定申告案内</a>
-                  <button type="button" class="mini-action-btn" data-guide-target="ledger">収支台帳を開く</button>
-                  <button type="button" id="guide-check-income-tax" class="mini-action-btn" data-guide-check="income-tax"></button>
-                </div>
-              </div>
-            </details>
+          <li class="guidance-item" data-guide-category="tax">
+            <button type="button" id="guide-income-tax" class="guidance-task-summary" data-guide-open="income-tax" aria-haspopup="dialog">
+              <span class="guide-category-label">所得税</span>
+              <span id="guide-title-income-tax" class="guide-task-title"></span>
+              <span id="guide-status-income-tax" class="status-badge"></span>
+            </button>
           </li>
-          <li class="guidance-item">
-            <details id="guide-blue" class="guidance-task">
-              <summary class="guidance-task-summary"><span id="guide-title-blue"></span><span id="guide-status-blue" class="status-badge"></span></summary>
-              <div class="guidance-task-body">
-                <p id="guide-copy-blue"></p>
-                <div class="guidance-controls">
-                  <button type="button" class="mini-action-btn" data-guide-target="blue" aria-haspopup="dialog">青色申告は何年分から？</button>
-                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm" target="_blank" rel="noopener">国税庁の青色申告案内</a>
-                  <button type="button" id="guide-check-blue" class="mini-action-btn" data-guide-check="blue"></button>
-                </div>
-              </div>
-            </details>
+          <li class="guidance-item" data-guide-category="blue">
+            <button type="button" id="guide-blue" class="guidance-task-summary" data-guide-open="blue" aria-haspopup="dialog">
+              <span class="guide-category-label">青色申告</span>
+              <span id="guide-title-blue" class="guide-task-title"></span>
+              <span id="guide-status-blue" class="status-badge"></span>
+            </button>
           </li>
         </ul>
       </details>
@@ -531,137 +499,139 @@
           </p>
 
           <!-- 日付つき仕訳入力フォーム（押した「❓」ボタンの真上に吹き出しが出て、入力欄を一切隠さない設計） -->
-          <form id="ledger-form" class="ledger-form" novalidate>
-            <!-- ① 入ってきたお金 or 使ったお金 -->
-            <div class="lf-section">
-              <div class="lf-label-row">
-                <span class="lf-step-badge">①</span>
-                <span class="lf-label-title">どっちのお金ですか？（タップで切替）</span>
-                <div class="lf-help-anchor">
-                  <button type="button" class="lf-help-chip" data-help-key="type">❓ 使い分けの説明</button>
-                  <div id="lf-pop-type" class="lf-inline-popover hidden"></div>
-                </div>
-              </div>
-              <input type="hidden" id="lf-type" value="income" />
-              <div class="lf-type-grid">
-                <button type="button" id="btn-lf-income" class="lf-type-card income-card active" data-lf-type="income">
-                  <span class="lf-type-title">💴 入ってきたお金（売上）</span>
-                  <span class="lf-type-desc">TikTokから口座に振り込まれたお金・イベント賞金・案件報酬など</span>
-                </button>
-                <button type="button" id="btn-lf-expense" class="lf-type-card expense-card" data-lf-type="expense">
-                  <span class="lf-type-title">🧾 配信に使ったお金（経費）</span>
-                  <span class="lf-type-desc">ライト・マイク・スマホ代・配信用の服やコスメ・交通費・家賃の一部など</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- ② いつの分？ -->
-            <div class="lf-section">
-              <div class="lf-label-row">
-                <span class="lf-step-badge">②</span>
-                <span class="lf-label-title" id="lf-date-label">いつの振込ですか？（振込日・売上月）</span>
-                <div class="lf-help-anchor">
-                  <button type="button" class="lf-help-chip" data-help-key="date">❓ 日付の入れ方</button>
-                  <div id="lf-pop-date" class="lf-inline-popover hidden"></div>
-                </div>
-              </div>
-              <div class="lf-date-selects">
-                <label class="lf-date-unit">
-                  <select id="lf-year" aria-label="年">
-                    <option value="2026" selected>2026年（今年）</option>
-                    <option value="2025">2025年（昨年）</option>
-                  </select>
-                </label>
-                <label class="lf-date-unit">
-                  <select id="lf-month" aria-label="月"></select>
-                </label>
-                <label class="lf-date-unit">
-                  <select id="lf-day" aria-label="日"></select>
-                </label>
-              </div>
-              <div class="lf-quick-row">
-                <span class="lf-quick-caption">ワンタップ日付:</span>
-                <button type="button" class="lf-quick-btn" data-date-preset="today">📅 今日</button>
-                <button type="button" class="lf-quick-btn" data-date-preset="this-month-end">📅 今月末（月まとめ）</button>
-                <button type="button" class="lf-quick-btn" data-date-preset="last-month-end">📅 先月末（先月まとめ）</button>
-                <button type="button" class="lf-quick-btn" data-date-preset="2025-end">📅 2025年末まとめ</button>
-              </div>
-            </div>
-
-            <!-- ③ 種類（勘定科目）＆ ④ 金額 -->
-            <div class="ledger-form-row">
+          <div id="ledger-form-home">
+            <form id="ledger-form" class="ledger-form" novalidate>
+              <!-- ① 入ってきたお金 or 使ったお金 -->
               <div class="lf-section">
                 <div class="lf-label-row">
-                  <span class="lf-step-badge">③</span>
-                  <label class="lf-label-title" for="lf-category" id="lf-cat-label">売上の種類（自動分類）</label>
+                  <span class="lf-step-badge">①</span>
+                  <span class="lf-label-title">どっちのお金ですか？（タップで切替）</span>
                   <div class="lf-help-anchor">
-                    <button type="button" class="lf-help-chip" data-help-key="category">❓ 項目とは？</button>
-                    <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
+                    <button type="button" class="lf-help-chip" data-help-key="type">❓ 使い分けの説明</button>
+                    <div id="lf-pop-type" class="lf-inline-popover hidden"></div>
                   </div>
                 </div>
-                <select id="lf-category" class="lf-select-input"></select>
-                <p class="lf-micro-hint">※ 1件記帳するたびに下の集計表へ自動で足し算されます</p>
+                <input type="hidden" id="lf-type" value="income" />
+                <div class="lf-type-grid">
+                  <button type="button" id="btn-lf-income" class="lf-type-card income-card active" data-lf-type="income">
+                    <span class="lf-type-title">💴 入ってきたお金（売上）</span>
+                    <span class="lf-type-desc">TikTokから口座に振り込まれたお金・イベント賞金・案件報酬など</span>
+                  </button>
+                  <button type="button" id="btn-lf-expense" class="lf-type-card expense-card" data-lf-type="expense">
+                    <span class="lf-type-title">🧾 配信に使ったお金（経費）</span>
+                    <span class="lf-type-desc">ライト・マイク・スマホ代・配信用の服やコスメ・交通費・家賃の一部など</span>
+                  </button>
+                </div>
               </div>
 
+              <!-- ② いつの分？ -->
               <div class="lf-section">
                 <div class="lf-label-row">
-                  <span class="lf-step-badge">④</span>
-                  <label class="lf-label-title" for="lf-amount" id="lf-amount-label">振り込まれた金額（1円単位OK）</label>
+                  <span class="lf-step-badge">②</span>
+                  <span class="lf-label-title" id="lf-date-label">いつの振込ですか？（振込日・売上月）</span>
                   <div class="lf-help-anchor">
-                    <button type="button" class="lf-help-chip" data-help-key="amount">❓ 何の金額？</button>
-                    <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
+                    <button type="button" class="lf-help-chip" data-help-key="date">❓ 日付の入れ方</button>
+                    <div id="lf-pop-date" class="lf-inline-popover hidden"></div>
                   </div>
                 </div>
-                <div class="lf-amount-wrap">
-                  <input
-                    type="number"
-                    id="lf-amount"
-                    min="1"
-                    step="1"
-                    inputmode="numeric"
-                    placeholder="例: 158420（1円単位でも万単位でもOK）"
-                  />
-                  <span class="lf-yen-suffix">円</span>
+                <div class="lf-date-selects">
+                  <label class="lf-date-unit">
+                    <select id="lf-year" aria-label="年">
+                      <option value="2026" selected>2026年（今年）</option>
+                      <option value="2025">2025年（昨年）</option>
+                    </select>
+                  </label>
+                  <label class="lf-date-unit">
+                    <select id="lf-month" aria-label="月"></select>
+                  </label>
+                  <label class="lf-date-unit">
+                    <select id="lf-day" aria-label="日"></select>
+                  </label>
                 </div>
                 <div class="lf-quick-row">
-                  <span class="lf-quick-caption">ワンタップ加算:</span>
-                  <button type="button" class="lf-quick-btn" data-amt-add="1000">＋1千円</button>
-                  <button type="button" class="lf-quick-btn" data-amt-add="10000">＋1万円</button>
-                  <button type="button" class="lf-quick-btn" data-amt-add="50000">＋5万円</button>
-                  <button type="button" class="lf-quick-btn" data-amt-add="100000">＋10万円</button>
-                  <button type="button" class="lf-quick-btn clear" data-amt-clear="true">クリア</button>
+                  <span class="lf-quick-caption">ワンタップ日付:</span>
+                  <button type="button" class="lf-quick-btn" data-date-preset="today">📅 今日</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="this-month-end">📅 今月末（月まとめ）</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="last-month-end">📅 先月末（先月まとめ）</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="2025-end">📅 2025年末まとめ</button>
                 </div>
               </div>
-            </div>
 
-            <!-- ⑤ メモ（任意） -->
-            <div class="lf-section">
-              <div class="lf-label-row">
-                <span class="lf-step-badge">⑤</span>
-                <label class="lf-label-title" for="lf-memo">メモ（空欄でもOK！後で見てわかる一言）</label>
-                <div class="lf-help-anchor">
-                  <button type="button" class="lf-help-chip" data-help-key="memo">❓ メモのコツ</button>
-                  <div id="lf-pop-memo" class="lf-inline-popover hidden"></div>
+              <!-- ③ 種類（勘定科目）＆ ④ 金額 -->
+              <div class="ledger-form-row">
+                <div class="lf-section">
+                  <div class="lf-label-row">
+                    <span class="lf-step-badge">③</span>
+                    <label class="lf-label-title" for="lf-category" id="lf-cat-label">売上の種類（自動分類）</label>
+                    <div class="lf-help-anchor">
+                      <button type="button" class="lf-help-chip" data-help-key="category">❓ 項目とは？</button>
+                      <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
+                    </div>
+                  </div>
+                  <select id="lf-category" class="lf-select-input"></select>
+                  <p class="lf-micro-hint">※ 1件記帳するたびに下の集計表へ自動で足し算されます</p>
+                </div>
+
+                <div class="lf-section">
+                  <div class="lf-label-row">
+                    <span class="lf-step-badge">④</span>
+                    <label class="lf-label-title" for="lf-amount" id="lf-amount-label">振り込まれた金額（1円単位OK）</label>
+                    <div class="lf-help-anchor">
+                      <button type="button" class="lf-help-chip" data-help-key="amount">❓ 何の金額？</button>
+                      <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
+                    </div>
+                  </div>
+                  <div class="lf-amount-wrap">
+                    <input
+                      type="number"
+                      id="lf-amount"
+                      min="1"
+                      step="1"
+                      inputmode="numeric"
+                      placeholder="例: 158420（1円単位でも万単位でもOK）"
+                    />
+                    <span class="lf-yen-suffix">円</span>
+                  </div>
+                  <div class="lf-quick-row">
+                    <span class="lf-quick-caption">ワンタップ加算:</span>
+                    <button type="button" class="lf-quick-btn" data-amt-add="1000">＋1千円</button>
+                    <button type="button" class="lf-quick-btn" data-amt-add="10000">＋1万円</button>
+                    <button type="button" class="lf-quick-btn" data-amt-add="50000">＋5万円</button>
+                    <button type="button" class="lf-quick-btn" data-amt-add="100000">＋10万円</button>
+                    <button type="button" class="lf-quick-btn clear" data-amt-clear="true">クリア</button>
+                  </div>
                 </div>
               </div>
-              <input
-                type="text"
-                id="lf-memo"
-                class="lf-text-input"
-                placeholder="例: 11月分 TikTok振込（空欄なら③の種類名が自動で入ります）"
-              />
-            </div>
 
-            <!-- 記帳ボタンを押したときの完了/未入力メッセージ（ボタンの真上に吹き出し表示） -->
-            <div id="lf-submit-feedback" class="lf-submit-feedback hidden"></div>
+              <!-- ⑤ メモ（任意） -->
+              <div class="lf-section">
+                <div class="lf-label-row">
+                  <span class="lf-step-badge">⑤</span>
+                  <label class="lf-label-title" for="lf-memo">メモ（空欄でもOK！後で見てわかる一言）</label>
+                  <div class="lf-help-anchor">
+                    <button type="button" class="lf-help-chip" data-help-key="memo">❓ メモのコツ</button>
+                    <div id="lf-pop-memo" class="lf-inline-popover hidden"></div>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  id="lf-memo"
+                  class="lf-text-input"
+                  placeholder="例: 11月分 TikTok振込（空欄なら③の種類名が自動で入ります）"
+                />
+              </div>
 
-            <div class="ledger-form-actions">
-              <button type="submit" class="btn-add-entry">➕ 台帳に日付順で記帳する（リアルタイム集計）</button>
-              <button type="button" id="btn-sync-ledger-to-diag" class="btn-sync-diag">
-                🔄 台帳の合計額で上の税金診断を更新
-              </button>
-            </div>
-          </form>
+              <!-- 記帳ボタンを押したときの完了/未入力メッセージ（ボタンの真上に吹き出し表示） -->
+              <div id="lf-submit-feedback" class="lf-submit-feedback hidden"></div>
+
+              <div class="ledger-form-actions">
+                <button type="submit" class="btn-add-entry">➕ 台帳に日付順で記帳する（リアルタイム集計）</button>
+                <button type="button" id="btn-sync-ledger-to-diag" class="btn-sync-diag">
+                  🔄 台帳の合計額で上の税金診断を更新
+                </button>
+              </div>
+            </form>
+          </div>
 
           <!-- 年度タブ切替（2026年分 / 2025年分）＆CSV出力 -->
           <div class="ledger-toolbar">
@@ -756,17 +726,93 @@
       </div>
     </div>
 
+    <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-dialog-title" aria-describedby="guide-dialog-location">
+      <header class="guide-dialog-header">
+        <div>
+          <p id="guide-dialog-location" class="guide-dialog-location"></p>
+          <h2 id="guide-dialog-title" tabindex="-1" autofocus></h2>
+        </div>
+        <button type="button" id="guide-dialog-close" class="guide-dialog-close">閉じる</button>
+      </header>
+      <div id="guide-dialog-body" class="guide-dialog-body">
+        <div id="guide-panel-prior-return" class="guide-pane guidance-task-body hidden">
+          <p id="guide-copy-prior-return"></p>
+          <div class="guidance-controls">
+            <button type="button" class="mini-action-btn" data-guide-target="prior-return">2025年分の入力を確認</button>
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm" target="_blank" rel="noopener">国税庁の期限後申告案内</a>
+            <button type="button" id="guide-check-prior-return" class="mini-action-btn" data-guide-check="prior-return"></button>
+          </div>
+        </div>
+        <div id="guide-panel-health" class="guide-pane guidance-task-body hidden">
+          <p id="guide-copy-health"></p>
+          <div class="guidance-controls">
+            <label for="guide-health-coverage">いま入っている保険</label>
+            <select id="guide-health-coverage" class="select-box">
+              <option value="unknown">分からない・その他</option>
+              <option value="dependent">親などの健康保険の扶養</option>
+              <option value="employer">勤務先の健康保険</option>
+              <option value="national">国民健康保険</option>
+            </select>
+            <a href="https://www.kyoukaikenpo.or.jp/faq/dependent_status/" target="_blank" rel="noopener">協会けんぽの扶養確認</a>
+            <a href="https://www.city.shizuoka.lg.jp/s8435/s000658.html" target="_blank" rel="noopener">国保の手続き例（静岡市）</a>
+            <button type="button" id="guide-check-health" class="mini-action-btn" data-guide-check="health"></button>
+          </div>
+        </div>
+        <div id="guide-panel-resident" class="guide-pane guidance-task-body hidden">
+          <p id="guide-copy-resident"></p>
+          <div class="guidance-controls">
+            <a href="https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/zeikin/y-shizei/kojin-shiminzei-kenminzei/kojin-shiminzei-shosai/shinkokunouzei.html" target="_blank" rel="noopener">住民税の通知と納付方法の例（横浜市）</a>
+            <button type="button" id="guide-check-resident" class="mini-action-btn" data-guide-check="resident"></button>
+          </div>
+        </div>
+        <div id="guide-panel-income-tax" class="guide-pane guidance-task-body hidden">
+          <p id="guide-copy-income-tax"></p>
+          <div class="guidance-controls">
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm" target="_blank" rel="noopener">国税庁の確定申告案内</a>
+            <button type="button" class="mini-action-btn" data-guide-target="ledger">収支台帳を開く</button>
+            <button type="button" id="guide-check-income-tax" class="mini-action-btn" data-guide-check="income-tax"></button>
+          </div>
+        </div>
+        <div id="guide-panel-blue" class="guide-pane guidance-task-body hidden">
+          <p id="guide-copy-blue"></p>
+          <div class="guidance-controls">
+            <button type="button" class="mini-action-btn" data-guide-target="blue" aria-haspopup="dialog">青色申告は何年分から？</button>
+            <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm" target="_blank" rel="noopener">国税庁の青色申告案内</a>
+            <button type="button" id="guide-check-blue" class="mini-action-btn" data-guide-check="blue"></button>
+          </div>
+        </div>
+        <div id="guide-panel-prior-input" class="guide-pane hidden">
+          <p class="guide-dialog-notice">2025年1月〜12月の配信収入と経費を入力します。申告を提出した場合は、申告済みを選んでください。</p>
+          <p id="guide-prior-demo-note" class="guide-dialog-notice hidden">入力例の金額です。自分の金額を変更するには、入力例を終了してください。</p>
+          <div id="guide-slot-prior-input"></div>
+        </div>
+        <div id="guide-panel-ledger" class="guide-pane hidden">
+          <p class="guide-dialog-notice">振込か経費を1件記録します。日付と金額は明細や領収書で確認してください。</p>
+          <p id="guide-ledger-demo-note" class="guide-dialog-notice hidden">入力例では記帳できません。実際の記帳は、自分の入力に戻ってからできます。</p>
+          <fieldset id="guide-slot-ledger" class="adjust-fields" aria-label="収支の記帳"></fieldset>
+        </div>
+        <div id="guide-panel-blue-deadline" class="guide-pane hidden">
+          <div id="guide-slot-blue-deadline"></div>
+        </div>
+      </div>
+      <footer class="guide-dialog-footer">
+        <button type="button" id="guide-dialog-back" class="guide-dialog-back">試算に戻る</button>
+      </footer>
+    </dialog>
+
     <dialog id="blue-application-dialog" class="blue-application-dialog" aria-labelledby="blue-application-title">
       <h3 id="blue-application-title">青色申告の適用年</h3>
-      <p id="blue-application-today"></p>
-      <div class="blue-application-result" aria-live="polite">
-        <strong id="blue-application-result"></strong>
-        <p id="blue-application-detail"></p>
+      <div id="blue-application-content">
+        <p id="blue-application-today"></p>
+        <div class="blue-application-result" aria-live="polite">
+          <strong id="blue-application-result"></strong>
+          <p id="blue-application-detail"></p>
+        </div>
+        <label for="blue-opening-date">新規開業した場合の開業日（任意）</label>
+        <input type="date" id="blue-opening-date" aria-describedby="blue-opening-help" />
+        <p id="blue-opening-help">空欄の場合は、すでに事業をしている方の原則の期限で計算します。</p>
+        <p>開業届とは別に、青色申告承認申請書の提出が必要です。<a href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm" target="_blank" rel="noopener">国税庁の案内</a></p>
       </div>
-      <label for="blue-opening-date">新規開業した場合の開業日（任意）</label>
-      <input type="date" id="blue-opening-date" aria-describedby="blue-opening-help" />
-      <p id="blue-opening-help">空欄の場合は、すでに事業をしている方の原則の期限で計算します。</p>
-      <p>開業届とは別に、青色申告承認申請書の提出が必要です。<a href="https://www.nta.go.jp/taxes/tetsuzuki/shinsei/annai/shinkoku/annai/09.htm" target="_blank" rel="noopener">国税庁の案内</a></p>
       <button type="button" id="btn-blue-application-close" class="btn-close-modal" autofocus>閉じる</button>
     </dialog>
 

@@ -33,6 +33,15 @@ impl Topic {
             Self::Blue => "blue",
         }
     }
+
+    pub fn category(self) -> (&'static str, &'static str) {
+        match self {
+            Self::PriorReturn | Self::IncomeTax => ("tax", "所得税"),
+            Self::Health => ("health", "健康保険"),
+            Self::Resident => ("resident", "住民税"),
+            Self::Blue => ("blue", "青色申告"),
+        }
+    }
 }
 
 pub struct Step {

@@ -2,8 +2,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><div id="app"></div>', { url: 'https://example.test/Rust-TAX/' });
-for (const key of ['window','document','Window','Document','Element','HTMLElement','HTMLInputElement','HTMLSelectElement','HTMLTextAreaElement','Event','Node']) globalThis[key] = key === 'window' ? dom.window : key === 'document' ? dom.window.document : dom.window[key];
-dom.window.HTMLElement.prototype.scrollIntoView = function() {};
+for (const key of ['window','document','Window','Document','Element','HTMLElement','HTMLDialogElement','HTMLInputElement','HTMLSelectElement','HTMLTextAreaElement','Event','Node']) globalThis[key] = key === 'window' ? dom.window : key === 'document' ? dom.window.document : dom.window[key];
+let scrollIntoViewCalls = 0;
+dom.window.HTMLElement.prototype.scrollIntoView = function() { scrollIntoViewCalls++; };
+let pageScroll = [0, 0];
+Object.defineProperties(dom.window, {
+  scrollX: { get: () => pageScroll[0] },
+  scrollY: { get: () => pageScroll[1] },
+});
+dom.window.scrollTo = (x, y) => { pageScroll = [x, y]; };
 let confirmed = true;
 dom.window.confirm = () => confirmed;
 const existing = [{id:'existing',date:'2026-01-31',type:'income',category:'振込売上（TikTok・投げ銭）',amount:123456,memo:'<img src=x onerror=alert(1)>'}];
@@ -14,6 +21,7 @@ await init({module_or_path: await readFile(new URL('../web/pkg/rust_tax_web_bg.w
 const $ = id => document.getElementById(id);
 const click = selector => document.querySelector(selector).click();
 const input = (id, value, kind='input') => {$(id).value=value;$(id).dispatchEvent(new dom.window.Event(kind,{bubbles:true}));};
+const hidden = id => $(id).hidden || $(id).classList.contains('hidden');
 if (corrupt) {
   input('lf-amount','1000');
   $('ledger-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
@@ -22,6 +30,25 @@ if (corrupt) {
   console.log('Corrupt stored ledger protected from overwrite.');
   process.exit(0);
 }
+// jsdom lacks native dialog methods and Escape handling. Deliver close as a later task.
+function mockDialog(id) {
+  const dialog = $(id);
+  dialog.showModal = () => dialog.setAttribute('open', '');
+  dialog.close = () => {
+    if (!dialog.open) return;
+    dialog.removeAttribute('open');
+    setImmediate(() => dialog.dispatchEvent(new window.Event('close')));
+  };
+  return dialog;
+}
+function escapeDialog(dialog) {
+  const event = new window.Event('cancel', { cancelable: true });
+  if (dialog.dispatchEvent(event)) dialog.close();
+}
+const afterDialogClose = () => new Promise(resolve => setImmediate(resolve));
+const guideDialog = mockDialog('guide-dialog');
+const applicationDialog = mockDialog('blue-application-dialog');
+
 assert.equal($('result-income').textContent,'0円');
 assert.equal($('next-step').classList.contains('hidden'),true);
 for (const id of ['drawer-adjust','drawer-calculation','drawer-details','drawer-ledger-pro']) {
@@ -46,10 +73,17 @@ assert.equal($('demo-indicator').classList.contains('hidden'),false);
 assert.equal($('adjust-fields').disabled,true);
 assert.match($('btn-next-step').textContent,/2025年分の確定申告/);
 click('#btn-next-step');
-assert.equal($('guide-prior-return').open,true);
+assert.equal(guideDialog.open,true);
+assert.match($('guide-dialog-title').textContent,/2025年分の確定申告/);
+assert.equal(guideDialog.dataset.guideCategory,'tax');
+assert.equal(hidden('guide-panel-prior-return'),false);
+assert.equal($('drawer-next-steps').open,false);
 assert.equal($('guide-check-prior-return').classList.contains('hidden'),true);
 assert.equal(window.localStorage.getItem('rust_tax_guidance_checked_v1'),null);
 assert.equal($('lv-total-inc').textContent,'123,456円');
+click('#guide-dialog-close');
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
 let recognition;
 let stopCalls = 0;
 window.SpeechRecognition = class {
@@ -83,42 +117,108 @@ document.dispatchEvent(new window.Event('visibilitychange'));
 assert.equal(stopCalls,2);
 recognition.onend();
 assert.equal($('mic-btn').disabled,false);
+Object.defineProperty(document,'hidden',{configurable:true,value:false});
+click('#drawer-next-steps > summary');
+click('#guide-prior-return');
+assert.equal(guideDialog.open,true);
 click('#guide-check-prior-return');
 assert.match($('guide-status-prior-return').textContent,/確認済み/);
+click('#guide-dialog-back');
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
+assert.equal(document.activeElement,$('guide-prior-return'));
+click('#drawer-next-steps > summary');
 input('voice-transcript-input','24歳、大阪、去年80万、今年400万、経費60万、青色申告');
 assert.equal($('val-inc-2026').textContent,'400万円');assert.match($('result-meta').textContent,/大阪/);
 assert.equal($('result-card').dataset.bizMode,'white');
 assert.match($('btn-next-step').textContent,/2025年分の確定申告/);
 assert.doesNotMatch($('guide-status-prior-return').textContent,/確認済み/);
+const priorFields = $('prior-year-fields');
+const priorHome = priorFields.parentElement;
+const scrollCallsBeforeGuide = scrollIntoViewCalls;
+pageScroll = [0, 640];
 click('#btn-next-step');
-click('#guide-prior-return [data-guide-target]');
-assert.equal($('drawer-input-2025').open,true);
+const priorInputButton = document.querySelector('#guide-panel-prior-return [data-guide-target]');
+priorInputButton.click();
+assert.equal(guideDialog.open,true);
+assert.equal($('prior-year-fields'),priorFields);
+assert.equal($('guide-slot-prior-input').contains(priorFields),true);
+assert.equal($('drawer-adjust').open,false);
+assert.equal($('drawer-input-2025').open,false);
+assert.equal($('drawer-next-steps').open,false);
+assert.match($('guide-dialog-title').textContent,/2025年分.*入力/);
+assert.match($('guide-dialog-location').textContent,/手続き|所得税|申告/);
 click('#check-filed-2025');
 assert.match($('btn-next-step').textContent,/健康保険を確認/);
+assert.equal(guideDialog.open,true);
+assert.deepEqual(pageScroll,[0,640]);
+click('#guide-dialog-back');
+assert.equal(guideDialog.open,true);
+assert.equal(hidden('guide-panel-prior-return'),false);
+assert.equal(document.activeElement,priorInputButton);
+assert.equal(priorFields.parentElement,priorHome);
+click('#guide-dialog-close');
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
+assert.equal(document.activeElement,$('btn-next-step'));
+assert.deepEqual(pageScroll,[0,640]);
+assert.equal(scrollIntoViewCalls,scrollCallsBeforeGuide);
 click('#btn-next-step');
-assert.equal($('guide-health').open,true);
+assert.equal(guideDialog.open,true);
+assert.equal(hidden('guide-panel-health'),false);
+assert.equal(guideDialog.dataset.guideCategory,'health');
 input('guide-health-coverage','dependent','change');
 assert.match($('guide-copy-health').textContent,/資格取得日まで遡った保険料/);
 assert.notEqual($('compare-white-nhi').textContent,'0円');
 input('guide-health-coverage','employer','change');
 assert.equal($('compare-white-nhi').textContent,'0円');
 assert.doesNotMatch($('btn-next-step').textContent,/健康保険を確認/);
+assert.equal(hidden('guide-panel-health'),false);
+click('#guide-dialog-close');
+await afterDialogClose();
 assert.match($('guide-copy-resident').textContent,/通知書|通知の受け取り方/);
+click('#drawer-next-steps > summary');
+click('#guide-resident');
+assert.equal(guideDialog.dataset.guideCategory,'resident');
 click('#guide-check-resident');
 assert.match($('guide-status-resident').textContent,/確認済み/);
 assert.deepEqual(Object.keys(JSON.parse(window.localStorage.getItem('rust_tax_guidance_checked_v1'))),['prior_return','resident']);
-click('#guide-income-tax [data-guide-target]');
-assert.equal($('drawer-ledger-pro').open,true);
+click('#guide-dialog-close');
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
+const ledgerForm = $('ledger-form');
+const ledgerHome = ledgerForm.parentElement;
+click('#guide-income-tax');
+click('#guide-panel-income-tax [data-guide-target]');
+assert.equal(guideDialog.dataset.guideCategory,'ledger');
+assert.equal($('guide-slot-ledger').contains(ledgerForm),true);
+assert.equal($('drawer-ledger-pro').open,false);
 assert.equal($('lv-total-inc').textContent,'123,456円');
+input('lf-amount','4500');
+escapeDialog(guideDialog);
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
+assert.equal(ledgerForm.parentElement,ledgerHome);
+assert.equal($('lf-amount').value,'4500');
+assert.equal(document.activeElement,$('guide-income-tax'));
 click('#check-filed-2025');
 input('guide-health-coverage','unknown','change');
-const applicationDialog = $('blue-application-dialog');
-// jsdom does not implement native dialog methods.
-applicationDialog.showModal = () => applicationDialog.setAttribute('open','');
-applicationDialog.close = () => applicationDialog.removeAttribute('open');
 const realNow = Date.now;
 try {
   Date.now = () => Date.parse('2026-11-17T15:01:00Z');
+  const blueContent = $('blue-application-content');
+  const blueHome = blueContent.parentElement;
+  click('#guide-blue');
+  click('#guide-panel-blue [data-guide-target]');
+  assert.equal(guideDialog.open,true);
+  assert.equal(applicationDialog.open,false);
+  assert.equal($('guide-panel-blue-deadline').contains(blueContent),true);
+  assert.match($('blue-application-result').textContent,/2027年分から/);
+  click('#guide-dialog-back');
+  assert.equal(hidden('guide-panel-blue'),false);
+  assert.equal(blueContent.parentElement,blueHome);
+  click('#guide-dialog-close');
+  await afterDialogClose();
   click('#btn-blue-application');
   assert.equal(applicationDialog.open,true);
   assert.match($('blue-application-today').textContent,/2026年11月18日/);
@@ -188,4 +288,4 @@ click('#btn-screenshot-mode');assert.equal(document.body.classList.contains('scr
 click('#btn-screenshot-mode');assert.equal(document.body.classList.contains('screenshot-view'),false);
 confirmed=false;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,2);
 confirmed=true;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,1);
-console.log('Wasm UI checks passed: boot, existing data, escaping, regions, voice text, controls, ledger, share, screenshot, confirmed deletion.');
+console.log('Wasm UI checks passed: guide dialogs, focus and scroll return, existing data, controls, ledger, share, screenshot, confirmed deletion.');

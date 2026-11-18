@@ -523,12 +523,43 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   color: #fff;
 }
 
+:where(.next-step, .guidance-item, .guide-dialog) {
+  --guide-accent: #67e8f9;
+  --guide-rgb: 103 232 249;
+}
+
+:where(.next-step, .guidance-item, .guide-dialog)[data-guide-category="tax"] {
+  --guide-accent: #facc70;
+  --guide-rgb: 250 204 112;
+}
+
+:where(.next-step, .guidance-item, .guide-dialog)[data-guide-category="health"] {
+  --guide-accent: #5eead4;
+  --guide-rgb: 94 234 212;
+}
+
+:where(.next-step, .guidance-item, .guide-dialog)[data-guide-category="resident"] {
+  --guide-accent: #d8b4fe;
+  --guide-rgb: 216 180 254;
+}
+
+:where(.next-step, .guidance-item, .guide-dialog)[data-guide-category="blue"] {
+  --guide-accent: #7dd3fc;
+  --guide-rgb: 125 211 252;
+}
+
+:where(.next-step, .guidance-item, .guide-dialog)[data-guide-category="ledger"] {
+  --guide-accent: #fda4af;
+  --guide-rgb: 253 164 175;
+}
+
 .next-step {
   margin: 12px 0 10px;
   padding: 12px;
-  border: 1px solid rgba(0, 242, 254, 0.35);
+  border: 1px solid rgb(var(--guide-rgb) / 0.42);
+  border-inline-start: 4px solid var(--guide-accent);
   border-radius: var(--radius-md);
-  background: rgba(0, 242, 254, 0.08);
+  background: rgb(var(--guide-rgb) / 0.10);
 }
 
 .next-step-header {
@@ -543,6 +574,17 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   line-height: 1.4;
 }
 
+.guide-category-label {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgb(var(--guide-rgb) / 0.14);
+  color: var(--guide-accent);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
 #next-step-copy {
   margin-top: 5px;
   color: var(--text-main);
@@ -550,16 +592,20 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   overflow-wrap: anywhere;
 }
 
-.next-step .next-step-primary {
+.next-step .next-step-primary,
+.guide-dialog .guidance-controls [data-guide-target] {
   min-height: 44px;
   max-width: 100%;
-  margin-top: 8px;
   padding: 7px 14px;
-  border-color: var(--tiktok-cyan);
-  background: var(--tiktok-cyan);
+  border-color: var(--guide-accent);
+  background: var(--guide-accent);
   color: #090a10;
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+
+.next-step .next-step-primary {
+  margin-top: 8px;
 }
 
 .guidance-list {
@@ -571,9 +617,10 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 
 .guidance-item {
   min-width: 0;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgb(var(--guide-rgb) / 0.28);
+  border-inline-start: 3px solid var(--guide-accent);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgb(var(--guide-rgb) / 0.08);
 }
 
 .guidance-task-summary {
@@ -581,37 +628,40 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 8px;
+  width: 100%;
   min-height: 44px;
   padding: 7px 10px;
-  list-style: none;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--text-main);
   cursor: pointer;
+  font: inherit;
   font-size: 13px;
   font-weight: 800;
+  text-align: start;
 }
 
-.guidance-task-summary::-webkit-details-marker {
-  display: none;
-}
-
-.guidance-task-summary::before {
+.guidance-task-summary::after {
   content: "";
   flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  margin-right: 2px;
-  border: solid var(--tiktok-cyan);
+  width: 7px;
+  height: 7px;
+  margin-inline-start: auto;
+  margin-inline-end: 3px;
+  border: solid var(--guide-accent);
   border-width: 0 1px 1px 0;
   transform: rotate(-45deg);
 }
 
-.guidance-task[open] > .guidance-task-summary::before {
-  transform: rotate(45deg);
-}
-
-.guidance-task-summary > span:first-child {
+.guidance-task-summary > span:not(.guide-category-label, .status-badge) {
   flex: 1 1 8rem;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.guidance-task-summary:hover {
+  background: rgb(var(--guide-rgb) / 0.08);
 }
 
 .next-step-header .status-badge,
@@ -622,9 +672,10 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 }
 
 .guidance-task-body {
-  padding: 0 10px 10px;
+  min-width: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.7;
   overflow-wrap: anywhere;
 }
 
@@ -644,13 +695,153 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 .guidance-controls a {
   display: inline-flex;
   align-items: center;
-  color: #a5f3fc;
+  color: var(--guide-accent);
+  text-underline-offset: 3px;
 }
 
 .next-step button:focus-visible,
-.guidance-task :is(summary, button, select, a):focus-visible {
-  outline: 2px solid var(--tiktok-cyan);
+.guidance-task-summary:focus-visible,
+.guide-dialog :is(button, input, select, textarea, a, summary):focus-visible {
+  outline: 2px solid var(--guide-accent);
   outline-offset: 2px;
+}
+
+.guide-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(560px, calc(100% - 24px));
+  height: fit-content;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid rgb(var(--guide-rgb) / 0.55);
+  border-radius: 18px;
+  background: var(--bg-card);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.58);
+  color: var(--text-main);
+  color-scheme: dark;
+}
+
+.guide-dialog[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.guide-dialog::backdrop {
+  background: rgba(5, 6, 12, 0.76);
+}
+
+html:has(.guide-dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
+.guide-dialog-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgb(var(--guide-rgb) / 0.30);
+  background: rgb(var(--guide-rgb) / 0.12);
+}
+
+.guide-dialog-header h2 {
+  min-width: 0;
+  font-size: clamp(16px, 4.6vw, 20px);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.guide-dialog-location {
+  color: var(--guide-accent);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.guide-dialog-close,
+.guide-dialog-back {
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid rgb(var(--guide-rgb) / 0.36);
+  border-radius: 10px;
+  background: rgb(var(--guide-rgb) / 0.08);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.guide-dialog-header > .guide-dialog-close {
+  grid-column: 2;
+  white-space: nowrap;
+}
+
+.guide-dialog-body {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+}
+
+.guide-pane {
+  min-width: 0;
+}
+
+.guide-dialog .ledger-form {
+  margin-bottom: 0;
+  border-color: rgb(var(--guide-rgb) / 0.28);
+}
+
+.guide-dialog-notice {
+  margin-block-end: 10px;
+  padding: 7px 10px;
+  border-inline-start: 3px solid var(--guide-accent);
+  border-radius: 6px;
+  background: rgb(var(--guide-rgb) / 0.08);
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.guide-dialog-footer,
+.guide-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.guide-dialog-footer {
+  padding: 10px 14px;
+  border-top: 1px solid rgb(var(--guide-rgb) / 0.28);
+  background: var(--bg-card);
+}
+
+.guide-dialog .guidance-controls [data-guide-check] {
+  border-color: rgb(var(--guide-rgb) / 0.42);
+  color: var(--guide-accent);
+  font-size: 13px;
+}
+
+.guide-dialog :is(.guide-dialog-close, .guide-dialog-back):hover {
+  background: rgb(var(--guide-rgb) / 0.16);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .guide-dialog[open] {
+    animation: guide-dialog-appear 140ms ease-out;
+  }
+}
+
+@keyframes guide-dialog-appear {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .result-headline {
@@ -1090,6 +1281,20 @@ details[open] > summary .hint-open {
 .result-fold[open] .drawer-hint {
   background: rgba(254, 9, 121, 0.2);
   color: #fda4af;
+}
+
+#drawer-calculation {
+  border-color: rgba(56, 189, 248, 0.40);
+}
+
+#drawer-calculation > .drawer-summary {
+  background: rgba(2, 132, 199, 0.18);
+  color: #e0f2fe;
+}
+
+#drawer-calculation > .drawer-summary .drawer-hint {
+  background: rgba(56, 189, 248, 0.16);
+  color: #bae6fd;
 }
 
 .parent-care-drawer {
