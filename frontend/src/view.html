@@ -27,7 +27,7 @@
         </summary>
         <div class="drawer-body">
           <div id="adjust-demo-notice" class="guide-demo-row hidden">
-            <span>入力例を表示中です。</span>
+            <span>入力例です。金額を動かして試せます。</span>
             <button type="button" id="btn-end-demo-adjust" class="sample-chip">自分の入力に戻る</button>
           </div>
           <fieldset id="adjust-fields" class="adjust-fields">
@@ -52,7 +52,7 @@
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-inc-2026" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
-                  <input id="slider-inc-2026" aria-label="2026年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
+                  <input id="slider-inc-2026" aria-label="2026年の配信収入" type="range" min="0" max="1000" step="1" value="0" class="touch-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-inc-2026" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
                 </div>
                 <div class="quick-chips">
@@ -71,7 +71,7 @@
                 </div>
                 <div class="pm-slider-row">
                   <button type="button" class="pm-btn minus" data-step-target="slider-exp-2026" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                  <input id="slider-exp-2026" aria-label="2026年の経費" type="range" min="0" max="500" step="5" value="0" class="touch-slider exp-slider" />
+                  <input id="slider-exp-2026" aria-label="2026年の経費" type="range" min="0" max="500" step="1" value="0" class="touch-slider exp-slider" />
                   <button type="button" class="pm-btn plus" data-step-target="slider-exp-2026" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
                 </div>
               </div>
@@ -95,7 +95,7 @@
                   </div>
                   <div class="pm-slider-row">
                     <button type="button" class="pm-btn minus" data-step-target="slider-inc-2025" data-step-delta="-10" aria-label="10万円減らす">−10万</button>
-                    <input id="slider-inc-2025" aria-label="2025年の配信収入" type="range" min="0" max="1000" step="5" value="0" class="touch-slider" />
+                    <input id="slider-inc-2025" aria-label="2025年の配信収入" type="range" min="0" max="1000" step="1" value="0" class="touch-slider" />
                     <button type="button" class="pm-btn plus" data-step-target="slider-inc-2025" data-step-delta="10" aria-label="10万円増やす">＋10万</button>
                   </div>
                   <div class="quick-chips">
@@ -114,7 +114,7 @@
                   </div>
                   <div class="pm-slider-row">
                     <button type="button" class="pm-btn minus" data-step-target="slider-exp-2025" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                    <input id="slider-exp-2025" aria-label="2025年の経費" type="range" min="0" max="300" step="5" value="0" class="touch-slider exp-slider" />
+                    <input id="slider-exp-2025" aria-label="2025年の経費" type="range" min="0" max="300" step="1" value="0" class="touch-slider exp-slider" />
                     <button type="button" class="pm-btn plus" data-step-target="slider-exp-2025" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
                   </div>
                 </div>
@@ -184,7 +184,7 @@
               </div>
               <div class="pm-slider-row">
                 <button type="button" class="pm-btn minus" data-step-target="slider-salary" data-step-delta="-5" aria-label="5万円減らす">−5万</button>
-                <input id="slider-salary" aria-label="バイト・給与の年額" type="range" min="0" max="500" step="5" value="80" class="touch-slider" />
+                <input id="slider-salary" aria-label="バイト・給与の年額" type="range" min="0" max="500" step="1" value="80" class="touch-slider" />
                 <button type="button" class="pm-btn plus" data-step-target="slider-salary" data-step-delta="5" aria-label="5万円増やす">＋5万</button>
               </div>
             </div>
@@ -498,7 +498,7 @@
             日々の売上・毎月の振込額・経費を<strong>1円単位で日付とセットで記帳</strong>すると、確定申告（青色決算書・収支内訳書）に必要な科目別集計と検証表が自動作成されます。
           </p>
 
-          <!-- 日付つき仕訳入力フォーム（押した「❓」ボタンの真上に吹き出しが出て、入力欄を一切隠さない設計） -->
+          <!-- 日付つき仕訳入力フォーム -->
           <div id="ledger-form-home">
             <form id="ledger-form" class="ledger-form" novalidate>
               <!-- ① 入ってきたお金 or 使ったお金 -->
@@ -506,11 +506,9 @@
                 <div class="lf-label-row">
                   <span class="lf-step-badge">①</span>
                   <span class="lf-label-title">どっちのお金ですか？（タップで切替）</span>
-                  <div class="lf-help-anchor">
-                    <button type="button" class="lf-help-chip" data-help-key="type">❓ 使い分けの説明</button>
-                    <div id="lf-pop-type" class="lf-inline-popover hidden"></div>
-                  </div>
+                  <button type="button" class="lf-help-chip" data-help-key="type" aria-controls="lf-pop-type" aria-expanded="false">❓ 使い分けの説明</button>
                 </div>
+                <div id="lf-pop-type" class="lf-inline-popover hidden"></div>
                 <input type="hidden" id="lf-type" value="income" />
                 <div class="lf-type-grid">
                   <button type="button" id="btn-lf-income" class="lf-type-card income-card active" data-lf-type="income">
@@ -529,11 +527,9 @@
                 <div class="lf-label-row">
                   <span class="lf-step-badge">②</span>
                   <span class="lf-label-title" id="lf-date-label">いつの振込ですか？（振込日・売上月）</span>
-                  <div class="lf-help-anchor">
-                    <button type="button" class="lf-help-chip" data-help-key="date">❓ 日付の入れ方</button>
-                    <div id="lf-pop-date" class="lf-inline-popover hidden"></div>
-                  </div>
+                  <button type="button" class="lf-help-chip" data-help-key="date" aria-controls="lf-pop-date" aria-expanded="false">❓ 日付の入れ方</button>
                 </div>
+                <div id="lf-pop-date" class="lf-inline-popover hidden"></div>
                 <div class="lf-date-selects">
                   <label class="lf-date-unit">
                     <select id="lf-year" aria-label="年">
@@ -563,11 +559,9 @@
                   <div class="lf-label-row">
                     <span class="lf-step-badge">③</span>
                     <label class="lf-label-title" for="lf-category" id="lf-cat-label">売上の種類（自動分類）</label>
-                    <div class="lf-help-anchor">
-                      <button type="button" class="lf-help-chip" data-help-key="category">❓ 項目とは？</button>
-                      <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
-                    </div>
+                    <button type="button" class="lf-help-chip" data-help-key="category" aria-controls="lf-pop-category" aria-expanded="false">❓ 項目とは？</button>
                   </div>
+                  <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
                   <select id="lf-category" class="lf-select-input"></select>
                   <p class="lf-micro-hint">※ 1件記帳するたびに下の集計表へ自動で足し算されます</p>
                 </div>
@@ -576,11 +570,9 @@
                   <div class="lf-label-row">
                     <span class="lf-step-badge">④</span>
                     <label class="lf-label-title" for="lf-amount" id="lf-amount-label">振り込まれた金額（1円単位OK）</label>
-                    <div class="lf-help-anchor">
-                      <button type="button" class="lf-help-chip" data-help-key="amount">❓ 何の金額？</button>
-                      <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
-                    </div>
+                    <button type="button" class="lf-help-chip" data-help-key="amount" aria-controls="lf-pop-amount" aria-expanded="false">❓ 何の金額？</button>
                   </div>
+                  <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
                   <div class="lf-amount-wrap">
                     <input
                       type="number"
@@ -608,11 +600,9 @@
                 <div class="lf-label-row">
                   <span class="lf-step-badge">⑤</span>
                   <label class="lf-label-title" for="lf-memo">メモ（空欄でもOK！後で見てわかる一言）</label>
-                  <div class="lf-help-anchor">
-                    <button type="button" class="lf-help-chip" data-help-key="memo">❓ メモのコツ</button>
-                    <div id="lf-pop-memo" class="lf-inline-popover hidden"></div>
-                  </div>
+                  <button type="button" class="lf-help-chip" data-help-key="memo" aria-controls="lf-pop-memo" aria-expanded="false">❓ メモのコツ</button>
                 </div>
+                <div id="lf-pop-memo" class="lf-inline-popover hidden"></div>
                 <input
                   type="text"
                   id="lf-memo"
@@ -622,7 +612,7 @@
               </div>
 
               <!-- 記帳ボタンを押したときの完了/未入力メッセージ（ボタンの真上に吹き出し表示） -->
-              <div id="lf-submit-feedback" class="lf-submit-feedback hidden"></div>
+                <div id="lf-submit-feedback" class="lf-submit-feedback hidden" role="status"></div>
 
               <div class="ledger-form-actions">
                 <button type="submit" class="btn-add-entry">➕ 台帳に日付順で記帳する（リアルタイム集計）</button>
@@ -783,12 +773,18 @@
         </div>
         <div id="guide-panel-prior-input" class="guide-pane hidden">
           <p class="guide-dialog-notice">2025年1月〜12月の配信収入と経費を入力します。申告を提出した場合は、申告済みを選んでください。</p>
-          <p id="guide-prior-demo-note" class="guide-dialog-notice hidden">入力例の金額です。自分の金額を変更するには、入力例を終了してください。</p>
+          <div id="guide-prior-demo-note" class="guide-dialog-notice hidden">
+            <p>入力例の金額を動かして試せます。</p>
+            <button type="button" id="btn-end-demo-prior" class="mini-action-btn">自分の入力に戻る</button>
+          </div>
           <div id="guide-slot-prior-input"></div>
         </div>
         <div id="guide-panel-ledger" class="guide-pane hidden">
           <p class="guide-dialog-notice">振込か経費を1件記録します。日付と金額は明細や領収書で確認してください。</p>
-          <p id="guide-ledger-demo-note" class="guide-dialog-notice hidden">入力例では記帳できません。実際の記帳は、自分の入力に戻ってからできます。</p>
+          <div id="guide-ledger-demo-note" class="guide-dialog-notice hidden">
+            <p>入力例から自分の入力に戻ると、実際の記帳ができます。</p>
+            <button type="button" id="btn-end-demo-ledger" class="mini-action-btn">自分の入力に戻る</button>
+          </div>
           <fieldset id="guide-slot-ledger" class="adjust-fields" aria-label="収支の記帳"></fieldset>
         </div>
         <div id="guide-panel-blue-deadline" class="guide-pane hidden">

@@ -80,7 +80,6 @@ fn borrow_input(id: &str, home: &str, slot: &str) -> Result<(), JsValue> {
 
 fn restore_inputs() -> Result<(), JsValue> {
     move_to("prior-year-fields", "prior-year-fields-home")?;
-    el("prior-year-fields").remove_attribute("disabled")?;
     move_to("ledger-form", "ledger-form-home")?;
     for home in ["prior-year-fields-home", "ledger-form-home"] {
         el(home).remove_attribute("style")?;
@@ -111,7 +110,7 @@ pub fn update_title(app: &App) {
     }
 }
 
-fn display(app: &App, page: Page, back_label: &str) -> Result<(), JsValue> {
+fn display(page: Page, back_label: &str) -> Result<(), JsValue> {
     restore_inputs()?;
     match page {
         Page::PriorInput => borrow_input(
@@ -138,13 +137,6 @@ fn display(app: &App, page: Page, back_label: &str) -> Result<(), JsValue> {
         Page::BlueDeadline,
     ]) {
         hidden(&format!("guide-panel-{}", pane.panel()), pane != page);
-    }
-    let demo = app.demo.is_some();
-    for id in ["guide-prior-demo-note", "guide-ledger-demo-note"] {
-        hidden(id, !demo);
-    }
-    for id in ["prior-year-fields", "guide-slot-ledger"] {
-        el(id).toggle_attribute_with_force("disabled", demo)?;
     }
     let (category, label) = page.category();
     element().set_attribute("data-guide-category", category)?;
@@ -174,7 +166,7 @@ pub fn open(app: &mut App, page: Page, trigger: Element) -> Result<(), JsValue> 
             return Ok(());
         }
         state.pages.push((page, trigger));
-        display(app, page, "← 案内に戻る")?;
+        display(page, "← 案内に戻る")?;
     } else {
         let window = web_sys::window().unwrap();
         let state = State {
@@ -182,7 +174,7 @@ pub fn open(app: &mut App, page: Page, trigger: Element) -> Result<(), JsValue> 
             x: window.scroll_x()?,
             y: window.scroll_y()?,
         };
-        display(app, page, root_back_label(&state.pages[0].1))?;
+        display(page, root_back_label(&state.pages[0].1))?;
         if let Err(error) = element().show_modal() {
             restore_inputs()?;
             return Err(error);
@@ -220,7 +212,7 @@ pub fn back(app: &mut App) -> Result<(), JsValue> {
     } else {
         root_back_label(parent_trigger)
     };
-    display(app, parent, label)?;
+    display(parent, label)?;
     focus(&trigger)
 }
 

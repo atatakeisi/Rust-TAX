@@ -343,9 +343,15 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
-  height: 10px;
+  height: 44px;
   accent-color: var(--tiktok-pink);
   cursor: grab;
+  touch-action: pan-y;
+}
+
+@media (max-width: 380px) {
+  .pm-slider-row { gap: 6px; }
+  .pm-btn { min-width: 46px; }
 }
 
 .touch-slider:active {
@@ -806,6 +812,11 @@ html:has(.guide-dialog[open]) {
   color: var(--text-main);
   font-size: 12px;
   line-height: 1.6;
+}
+
+.guide-dialog-notice .mini-action-btn {
+  min-height: 44px;
+  margin-top: 6px;
 }
 
 .guide-dialog-footer,
@@ -1739,36 +1750,17 @@ details[open] > summary .hint-open {
   gap: 14px;
 }
 
-/* 押した「❓」ボタンの真上に浮かび上がり、下の入力欄を一切隠さない吹き出しポップオーバー */
-.lf-help-anchor {
-  position: relative;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-}
-
+/* 説明は項目の直下で、入力欄と同じ幅に収める。 */
 .lf-inline-popover {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  right: 0;
-  width: min(320px, 84vw);
-  z-index: 200;
   background: #0f253e;
-  border: 2px solid var(--tiktok-cyan);
-  border-radius: 14px;
-  padding: 11px 13px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.85);
-}
-
-/* 吹き出しの下向き三角しっぽ（「❓」ボタンの真上を指す） */
-.lf-inline-popover::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  right: 18px;
-  border-width: 7px;
-  border-style: solid;
-  border-color: var(--tiktok-cyan) transparent transparent transparent;
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  border-inline-start: 3px solid var(--tiktok-cyan);
+  border-radius: 8px;
+  color: #f1f5f9;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .lf-pop-head {
@@ -1801,7 +1793,7 @@ details[open] > summary .hint-open {
   line-height: 1.45;
 }
 
-.lf-help-chip.active {
+.lf-help-chip[aria-expanded='true'] {
   background: var(--tiktok-cyan);
   border-color: var(--tiktok-cyan);
   color: #090a10;
@@ -1974,6 +1966,7 @@ details[open] > summary .hint-open {
 
 .lf-amount-wrap input {
   flex: 1;
+  min-width: 0;
   background: #0e101c;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   color: #fde047;
@@ -2035,13 +2028,13 @@ details[open] > summary .hint-open {
 
 .ledger-form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 @media (max-width: 520px) {
   .ledger-form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

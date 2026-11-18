@@ -12,6 +12,7 @@ use rust_tax_engine::{
 use std::cell::RefCell;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{Element, HtmlDialogElement, HtmlInputElement, HtmlSelectElement, HtmlTextAreaElement};
+const YEN_PER_MAN: i64 = 10_000;
 thread_local! {static APP:RefCell<App>=RefCell::new(App::default());}
 #[derive(Default)]
 struct App {
@@ -198,15 +199,20 @@ fn sync(s: &DiagnoseInput) {
         ("exp-2026", s.expense2026),
         ("salary", s.salary_annual),
     ] {
-        let slider = el(&format!("slider-{id}"));
+        let slider = el(&format!("slider-{id}")).unchecked_into::<HtmlInputElement>();
+        let thumb = n.saturating_add(YEN_PER_MAN / 2).max(0) / YEN_PER_MAN;
         let max = slider
             .get_attribute("max")
             .and_then(|x| x.parse::<i64>().ok())
             .unwrap_or(0);
-        if n / 10000 > max {
-            let _ = slider.set_attribute("max", &(n / 10000 + 100).to_string());
+        if thumb > max {
+            slider.set_max(&(thumb + 100).to_string());
         }
-        setval(&format!("slider-{id}"), n / 10000);
+        let position = thumb.to_string();
+        if slider.value() != position {
+            slider.set_value(&position);
+        }
+        let _ = slider.set_attribute("aria-valuetext", &yen(n));
         text(&format!("val-{id}"), man(n));
     }
     setval("select-start-2025", s.start_month2025);
@@ -219,6 +225,10 @@ fn sync(s: &DiagnoseInput) {
     }
 }
 fn render(a: &App) {
+    render_estimate(a);
+    render_ledger(a);
+}
+fn render_estimate(a: &App) {
     let s = &a.input;
     sync(s);
     let out = diagnose(s);
@@ -378,7 +388,6 @@ fn render(a: &App) {
             .map(|n| format!("<li>{}</li>", esc(n)))
             .collect::<String>(),
     );
-    render_ledger(a);
 }
 fn render_guidance(a: &App, out: &DiagnoseOutput) {
     let demo = a.demo.is_some();
@@ -386,7 +395,9 @@ fn render_guidance(a: &App, out: &DiagnoseOutput) {
     hidden("demo-indicator", !demo);
     hidden("btn-end-demo", !demo);
     hidden("adjust-demo-notice", !demo);
-    let _ = el("adjust-fields").toggle_attribute_with_force("disabled", demo);
+    hidden("guide-prior-demo-note", !demo);
+    hidden("guide-ledger-demo-note", !demo);
+    let _ = el("guide-slot-ledger").toggle_attribute_with_force("disabled", demo);
     hidden("btn-try-guide", demo || entered);
     hidden("guide-demo-row", entered && !demo);
     hidden("next-step", !entered);
@@ -546,9 +557,12 @@ fn save(a: &mut App) {
                 .is_ok()
         });
 }
-fn feedback(s: &str) {
-    hidden("lf-submit-feedback", false);
-    text("lf-submit-feedback", s);
+fn feedback(message: &str, success: bool) {
+    let feedback = el("lf-submit-feedback");
+    class(&feedback, "hidden", false);
+    class(&feedback, "is-success", success);
+    class(&feedback, "is-error", !success);
+    feedback.set_text_content(Some(message));
 }
 fn categories(kind: &str) {
     setval("lf-type", kind);
@@ -595,7 +609,25 @@ fn days() {
     );
     setval("lf-day", d);
 }
+fn slider_amount<'a>(input: &'a mut DiagnoseInput, slider: &str) -> Option<&'a mut i64> {
+    match slider {
+        "slider-inc-2025" => Some(&mut input.income2025),
+        "slider-exp-2025" => Some(&mut input.expense2025),
+        "slider-inc-2026" => Some(&mut input.income2026),
+        "slider-exp-2026" => Some(&mut input.expense2026),
+        "slider-salary" => Some(&mut input.salary_annual),
+        _ => None,
+    }
+}
 fn update(a: &mut App, id: &str) {
+    if let Some(amount) = slider_amount(&mut a.input, id) {
+        let next = num(id).saturating_mul(YEN_PER_MAN);
+        if *amount != next {
+            *amount = next;
+            render_estimate(a);
+        }
+        return;
+    }
     match id {
         "guide-health-coverage" => {
             let coverage = match val(id).as_str() {
@@ -626,22 +658,17 @@ fn update(a: &mut App, id: &str) {
         "check-blue-2026" => {
             a.input.blue_return_2026 = el(id).unchecked_ref::<HtmlInputElement>().checked();
         }
-        "slider-inc-2025" => a.input.income2025 = num(id) * 10000,
-        "slider-exp-2025" => a.input.expense2025 = num(id) * 10000,
-        "slider-inc-2026" => a.input.income2026 = num(id) * 10000,
-        "slider-exp-2026" => a.input.expense2026 = num(id) * 10000,
-        "slider-salary" => a.input.salary_annual = num(id) * 10000,
-        "lf-year" | "lf-month" => days(),
+        "lf-year" | "lf-month" => return days(),
         _ => return,
     }
-    render(a);
+    render_estimate(a);
 }
 fn add_entry(a: &mut App) {
     if a.demo.is_some() && guide_dialog::current(a) == Some(guide_dialog::Page::Ledger) {
         return;
     }
     if a.storage_protected {
-        feedback("保存済みデータの読み込みに失敗したため、上書きを停止しています。");
+        feedback("保存済みデータの読み込みに失敗したため、上書きを停止しています。", false);
         return;
     }
     let (y, m, d) = (
@@ -651,7 +678,7 @@ fn add_entry(a: &mut App) {
     );
     let amount = num("lf-amount");
     if !ledger::valid_date(y, m, d) || amount <= 0 || amount > 1_000_000_000 {
-        feedback("日付と金額（1〜10億円の整数）を確認してください。");
+        feedback("日付と金額（1〜10億円の整数）を確認してください。", false);
         return;
     }
     let memo = val("lf-memo");
@@ -672,11 +699,11 @@ fn add_entry(a: &mut App) {
     render_ledger(a);
     setval("lf-amount", "");
     setval("lf-memo", "");
-    feedback(if a.storage_ok {
-        "✅ 記帳してこのブラウザに保存しました。"
+    if a.storage_ok {
+        feedback("✅ 記帳してこのブラウザに保存しました。", true);
     } else {
-        "⚠️ 記帳しましたが保存できません。CSVを保管してください。"
-    });
+        feedback("⚠️ 記帳しましたが保存できません。CSVを保管してください。", false);
+    }
 }
 fn share(a: &App) {
     let o = diagnose(&a.input);
@@ -796,8 +823,15 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
             .get_attribute("max")
             .and_then(|x| x.parse::<i64>().ok())
             .unwrap_or(1000);
-        setval(&v, (num(&v) + delta).clamp(0, max));
-        update(a, &v);
+        if let Some(amount) = slider_amount(&mut a.input, &v) {
+            let next = amount
+                .saturating_add(delta.saturating_mul(YEN_PER_MAN))
+                .clamp(0, max.saturating_mul(YEN_PER_MAN));
+            if *amount != next {
+                *amount = next;
+                render_estimate(a);
+            }
+        }
         return Ok(());
     } else if let Some(v) = attr("data-lf-type") {
         categories(&v);
@@ -862,8 +896,12 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         let id = format!("lf-pop-{v}");
         let show = el(&id).class_list().contains("hidden");
         each(".lf-inline-popover", |e| class(&e, "hidden", true));
+        each("[data-help-key]", |button| {
+            let _ = button.set_attribute("aria-expanded", "false");
+        });
         text(&id,match v.as_str(){"type"=>"売上は振込報酬、経費は配信業務に必要な支出を記録します。","date"=>"年・月・日を選択してください。月まとめの場合も証憑と対応できるように保管します。","category"=>"売上または経費の科目を選ぶと、年度ごとに自動集計します。","amount"=>"1円単位の整数で入力してください。私用分は経費から除きます。",_=>"後で確認できる内容や用途を記録してください。"});
         hidden(&id, !show);
+        e.set_attribute("aria-expanded", if show { "true" } else { "false" })?;
         return Ok(());
     } else {
         match id.as_str() {
@@ -873,6 +911,11 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 end_demo(a);
                 render(a);
                 return el("mic-btn").unchecked_ref::<web_sys::HtmlElement>().focus();
+            }
+            "btn-end-demo-prior" | "btn-end-demo-ledger" => {
+                end_demo(a);
+                render_estimate(a);
+                return el("guide-dialog-title").unchecked_ref::<web_sys::HtmlElement>().focus();
             }
             "btn-show-result" => {
                 mic_status("");
@@ -1120,7 +1163,7 @@ pub fn start() -> Result<(), JsValue> {
                 Err(_) => {
                     a.storage_protected = true;
                     a.storage_ok = false;
-                    feedback("⚠️ 保存データを読み込めません。既存データを保護するため記帳を停止しています。");
+                    feedback("⚠️ 保存データを読み込めません。既存データを保護するため記帳を停止しています。", false);
                 }
             },
             None => {}

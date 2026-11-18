@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { JSDOM } from 'jsdom';
-const dom = new JSDOM('<!doctype html><div id="app"></div>', { url: 'https://example.test/Rust-TAX/' });
+import { JSDOM, VirtualConsole } from 'jsdom';
+const browserErrors = [];
+const virtualConsole = new VirtualConsole();
+virtualConsole.on('jsdomError', error => browserErrors.push(error));
+const dom = new JSDOM('<!doctype html><div id="app"></div>', { url: 'https://example.test/Rust-TAX/', virtualConsole });
 for (const key of ['window','document','Window','Document','Element','HTMLElement','HTMLDialogElement','HTMLInputElement','HTMLSelectElement','HTMLTextAreaElement','Event','Node']) globalThis[key] = key === 'window' ? dom.window : key === 'document' ? dom.window.document : dom.window[key];
 let scrollIntoViewCalls = 0;
 dom.window.HTMLElement.prototype.scrollIntoView = function() { scrollIntoViewCalls++; };
@@ -27,6 +30,7 @@ if (corrupt) {
   $('ledger-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
   assert.equal(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1'),'{invalid');
   assert.match($('lf-submit-feedback').textContent,/停止/);
+  assert.deepEqual(browserErrors,[]);
   console.log('Corrupt stored ledger protected from overwrite.');
   process.exit(0);
 }
@@ -70,7 +74,7 @@ assert.equal(document.activeElement,$('voice-transcript-input'));
 click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'280万円');
 assert.equal($('drawer-adjust').open,false);
 assert.equal($('demo-indicator').classList.contains('hidden'),false);
-assert.equal($('adjust-fields').disabled,true);
+assert.equal($('adjust-fields').disabled,false);
 assert.match($('btn-next-step').textContent,/2025年分の確定申告/);
 click('#btn-next-step');
 assert.equal(guideDialog.open,true);
@@ -81,6 +85,12 @@ assert.equal($('drawer-next-steps').open,false);
 assert.equal($('guide-check-prior-return').classList.contains('hidden'),true);
 assert.equal(window.localStorage.getItem('rust_tax_guidance_checked_v1'),null);
 assert.equal($('lv-total-inc').textContent,'123,456円');
+click('#guide-panel-prior-return [data-guide-target]');
+assert.equal($('prior-year-fields').disabled,false);
+assert.equal(hidden('guide-prior-demo-note'),false);
+input('slider-inc-2025','151');
+assert.equal($('val-inc-2025').textContent,'151万円');
+assert.equal(window.localStorage.getItem('rust_tax_guidance_checked_v1'),null);
 click('#guide-dialog-close');
 await afterDialogClose();
 assert.equal(guideDialog.open,false);
@@ -148,6 +158,10 @@ assert.equal($('drawer-input-2025').open,false);
 assert.equal($('drawer-next-steps').open,false);
 assert.match($('guide-dialog-title').textContent,/2025年分.*入力/);
 assert.match($('guide-dialog-location').textContent,/手続き|所得税|申告/);
+input('slider-inc-2025','81');
+assert.equal($('val-inc-2025').textContent,'81万円');
+input('slider-inc-2025','80','change');
+assert.equal($('val-inc-2025').textContent,'80万円');
 click('#check-filed-2025');
 assert.match($('btn-next-step').textContent,/健康保険を確認/);
 assert.equal(guideDialog.open,true);
@@ -194,6 +208,23 @@ assert.equal(guideDialog.dataset.guideCategory,'ledger');
 assert.equal($('guide-slot-ledger').contains(ledgerForm),true);
 assert.equal($('drawer-ledger-pro').open,false);
 assert.equal($('lv-total-inc').textContent,'123,456円');
+for (const key of ['type','date','category','amount','memo']) {
+  const button = document.querySelector(`[data-help-key="${key}"]`);
+  const help = $(button.getAttribute('aria-controls'));
+  assert.equal(button.closest('.lf-label-row').nextElementSibling,help);
+  button.click();
+  assert.equal(hidden(help.id),false);
+  assert.equal(button.getAttribute('aria-expanded'),'true');
+}
+assert.equal(hidden('lf-pop-category'),true);
+assert.equal(document.querySelector('[data-help-key="category"]').getAttribute('aria-expanded'),'false');
+click('[data-help-key="memo"]');
+assert.equal(hidden('lf-pop-memo'),true);
+input('lf-amount','-1');
+ledgerForm.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
+assert.match($('lf-submit-feedback').textContent,/日付と金額/);
+assert.equal($('lf-submit-feedback').classList.contains('is-error'),true);
+assert.equal(JSON.parse(window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,1);
 input('lf-amount','4500');
 escapeDialog(guideDialog);
 await afterDialogClose();
@@ -268,6 +299,23 @@ assert.equal($('bd-it-2026').textContent,whiteIncomeTax);
 click('#check-filed-2025');
 assert.equal($('net-2025').textContent,previousIncome);
 click('[data-step-target="slider-inc-2026"][data-step-delta="10"]');assert.equal($('val-inc-2026').textContent,'410万円');
+const manualSlider = $('slider-inc-2026');
+const originalLedgerRow = $('ledger-entries-tbody').firstElementChild;
+const nativeRangeValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value');
+let sliderWrites = 0;
+Object.defineProperty(manualSlider,'value',{
+  configurable:true,
+  get() { return nativeRangeValue.get.call(this); },
+  set(value) { sliderWrites++; nativeRangeValue.set.call(this,value); }
+});
+nativeRangeValue.set.call(manualSlider,'411');
+for (const event of ['input','change']) {
+  manualSlider.dispatchEvent(new window.Event(event,{bubbles:true}));
+}
+assert.equal($('result-income').textContent,'411万円');
+assert.equal(sliderWrites,0);
+assert.equal($('ledger-entries-tbody').firstElementChild,originalLedgerRow);
+input('slider-inc-2026','410');
 click('[data-age-group="u18"]');assert.match($('result-meta').textContent,/17歳/);
 click('[data-has-salary="true"]');assert.equal($('salary-detail-box').classList.contains('hidden'),false);
 input('slider-salary','320');
@@ -281,11 +329,17 @@ input('lf-year','2026','change');input('lf-month','2','change');assert.equal($('
 input('lf-day','28','change');input('lf-amount','4567');input('lf-memo','テスト');
 $('ledger-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
 assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,2);
+assert.equal($('lf-submit-feedback').classList.contains('is-success'),true);
 click('#btn-sync-ledger-to-diag');assert.equal($('val-inc-2026').textContent,'12.8万円');
+click('[data-step-target="slider-inc-2026"][data-step-delta="10"]');
+assert.equal($('slider-inc-2026').getAttribute('aria-valuetext'),'228,023円');
+click('[data-step-target="slider-inc-2026"][data-step-delta="-10"]');
+assert.equal($('slider-inc-2026').getAttribute('aria-valuetext'),'128,023円');
 click('#btn-copy-line');assert.equal($('share-modal').classList.contains('hidden'),false);assert.match($('share-modal-textarea').value,/ライバー/);
 click('#btn-modal-close-bottom');assert.equal($('share-modal').classList.contains('hidden'),true);
 click('#btn-screenshot-mode');assert.equal(document.body.classList.contains('screenshot-view'),true);
 click('#btn-screenshot-mode');assert.equal(document.body.classList.contains('screenshot-view'),false);
 confirmed=false;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,2);
 confirmed=true;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,1);
-console.log('Wasm UI checks passed: guide dialogs, focus and scroll return, existing data, controls, ledger, share, screenshot, confirmed deletion.');
+assert.deepEqual(browserErrors,[]);
+console.log('Wasm UI checks passed: sliders, guide dialogs, inline help, ledger validation, focus and scroll return, share, screenshots.');
