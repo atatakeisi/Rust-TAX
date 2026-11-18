@@ -71,6 +71,13 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   line-height: 1.3;
 }
 
+.grad-text {
+  background: linear-gradient(90deg, var(--tiktok-cyan) 0%, #ff4b91 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* マイク一発入力ボタン */
 .mic-hero-btn {
   display: flex;
@@ -80,10 +87,11 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   width: 100%;
   min-height: 62px;
   padding: 10px 14px;
-  border: 1px solid #5ee2ec;
+  border: none;
   border-radius: 14px;
-  background: #71e6ec;
-  color: #162437;
+  background: linear-gradient(135deg, var(--tiktok-pink) 0%, #ff6a00 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(254, 9, 121, 0.4);
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
 }
@@ -93,9 +101,7 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 }
 
 .mic-hero-btn.listening {
-  background: #ffd0d8;
-  border-color: #fda4af;
-  color: #3b1524;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 }
 
 .mic-emoji {
@@ -295,10 +301,17 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 
 /* 試算結果 */
 .result-card {
-  background: #1a1d30;
-  border: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, #212438 0%, #141626 100%);
+  border: 1px solid rgba(226, 232, 240, 0.45);
   border-radius: 16px;
   padding: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+.result-card[data-biz-mode='blue'] {
+  background: linear-gradient(180deg, #0f253e 0%, #0d1627 100%);
+  border-color: var(--blue-accent);
+  box-shadow: 0 16px 42px rgba(56, 189, 248, 0.28);
 }
 
 .comparison-title {
@@ -365,9 +378,23 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
   overflow-wrap: anywhere;
 }
 
-.filing-comparison :is(th, td):last-child {
-  background: rgba(56, 189, 248, 0.08);
+.filing-comparison th:nth-child(2),
+.filing-comparison td:nth-child(2) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filing-comparison td:nth-child(2) {
+  color: #fde047;
+}
+
+.filing-comparison th:last-child,
+.filing-comparison td:last-child {
+  background: rgba(56, 189, 248, 0.14);
   color: #bae6fd;
+}
+
+.filing-comparison td:last-child {
+  color: #7dd3fc;
 }
 
 .shot-actions {
@@ -706,10 +733,21 @@ body.screenshot-view #drawer-details .drawer-body > :not(.shot-actions) {
 }
 
 /* 手入力・結果詳細・台帳の開閉 */
-.manual-adjust-drawer, .ledger-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+.manual-adjust-drawer {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(0, 242, 254, 0.45);
   border-radius: 12px;
+}
+
+.ledger-section {
+  background: var(--bg-card);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 12px;
+}
+
+.ledger-section .fold-summary {
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.22), rgba(37, 99, 235, 0.16));
 }
 
 .result-fold {
