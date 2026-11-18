@@ -1,7 +1,7 @@
 use crate::guidance::Topic;
-use crate::{el, hidden, render_blue_deadline, text, App};
+use crate::{el, focus_without_scroll, hidden, render_blue_deadline, text, App};
 use wasm_bindgen::{JsCast, JsValue};
-use web_sys::{Element, FocusOptions, HtmlDialogElement, HtmlElement};
+use web_sys::{Element, HtmlDialogElement, HtmlElement};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Page {
@@ -52,14 +52,6 @@ pub fn element() -> HtmlDialogElement {
     el("guide-dialog").unchecked_into()
 }
 
-fn focus(element: &Element) -> Result<(), JsValue> {
-    let options = FocusOptions::new();
-    options.set_prevent_scroll(true);
-    element
-        .unchecked_ref::<HtmlElement>()
-        .focus_with_options(&options)
-}
-
 fn move_to(id: &str, parent: &str) -> Result<(), JsValue> {
     let child = el(id);
     let parent = el(parent);
@@ -89,10 +81,6 @@ fn restore_inputs() -> Result<(), JsValue> {
     if deadline.parent_element().as_ref() != Some(&home) {
         home.insert_before(&deadline, Some(&el("btn-blue-application-close")))?;
     }
-    text(
-        "btn-sync-ledger-to-diag",
-        "🔄 台帳の合計額で上の税金診断を更新",
-    );
     Ok(())
 }
 
@@ -118,19 +106,14 @@ fn display(page: Page, back_label: &str) -> Result<(), JsValue> {
             "prior-year-fields-home",
             "guide-slot-prior-input",
         )?,
-        Page::Ledger => {
-            borrow_input("ledger-form", "ledger-form-home", "guide-slot-ledger")?;
-            text(
-                "btn-sync-ledger-to-diag",
-                "🔄 台帳の合計を試算に反映して閉じる",
-            );
-        }
+        Page::Ledger => borrow_input("ledger-form", "ledger-form-home", "guide-slot-ledger")?,
         Page::BlueDeadline => {
             move_to("blue-application-content", "guide-slot-blue-deadline")?;
             render_blue_deadline();
         }
         Page::Topic(_) => {}
     }
+    hidden("btn-sync-ledger-in-guide", page != Page::Ledger);
     for pane in Topic::ALL.map(Page::Topic).into_iter().chain([
         Page::PriorInput,
         Page::Ledger,
@@ -181,7 +164,7 @@ pub fn open(app: &mut App, page: Page, trigger: Element) -> Result<(), JsValue> 
         }
         app.guide_dialog = Some(state);
     }
-    focus(&el("guide-dialog-title"))
+    focus_without_scroll(&el("guide-dialog-title"))
 }
 
 fn root_back_label(trigger: &Element) -> &'static str {
@@ -213,7 +196,7 @@ pub fn back(app: &mut App) -> Result<(), JsValue> {
         root_back_label(parent_trigger)
     };
     display(parent, label)?;
-    focus(&trigger)
+    focus_without_scroll(&trigger)
 }
 
 pub fn close(app: &mut App) -> Result<(), JsValue> {
@@ -238,7 +221,7 @@ pub fn finish(app: &mut App) -> Result<(), JsValue> {
     } else {
         origin
     };
-    focus(origin)?;
+    focus_without_scroll(origin)?;
     let window = web_sys::window().unwrap();
     if (window.scroll_x()? - state.x).abs() > 1.0 || (window.scroll_y()? - state.y).abs() > 1.0 {
         window.scroll_to_with_x_and_y(state.x, state.y);

@@ -1,7 +1,9 @@
+mod actions_ui;
 mod blue_deadline;
 mod guide_dialog;
 mod guidance;
 mod ledger;
+mod ledger_wizard;
 mod parser;
 use guidance::{Checked, Topic};
 use ledger::Entry;
@@ -11,7 +13,10 @@ use rust_tax_engine::{
 };
 use std::cell::RefCell;
 use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{Element, HtmlDialogElement, HtmlInputElement, HtmlSelectElement, HtmlTextAreaElement};
+use web_sys::{
+    Element, FocusOptions, HtmlDialogElement, HtmlElement, HtmlInputElement, HtmlSelectElement,
+    HtmlTextAreaElement,
+};
 const YEN_PER_MAN: i64 = 10_000;
 thread_local! {static APP:RefCell<App>=RefCell::new(App::default());}
 #[derive(Default)]
@@ -21,6 +26,7 @@ struct App {
     year: i32,
     storage_ok: bool,
     storage_protected: bool,
+    ledger_step: ledger_wizard::Step,
     speech: Option<JsValue>,
     speech_state: SpeechState,
     demo: Option<DemoBackup>,
@@ -48,6 +54,11 @@ fn el(id: &str) -> Element {
     doc()
         .get_element_by_id(id)
         .unwrap_or_else(|| panic!("missing element {id}"))
+}
+fn focus_without_scroll(element: &Element) -> Result<(), JsValue> {
+    let options = FocusOptions::new();
+    options.set_prevent_scroll(true);
+    element.unchecked_ref::<HtmlElement>().focus_with_options(&options)
 }
 fn text(id: &str, s: impl AsRef<str>) {
     el(id).set_text_content(Some(s.as_ref()));
@@ -380,7 +391,7 @@ fn render_estimate(a: &App) {
             format!("（青色控除 {}）", man(y.blue_deduction)),
         );
     }
-    html("action-list",&out.actions.iter().map(|x|format!("<li class='action-item priority-{}'><div class='action-header'><span class='action-icon'>{}</span><span class='action-title'>{}</span><span class='action-when'>{}</span></div><p class='action-detail'>{}</p></li>",status(x.priority),esc(&x.icon),esc(&x.title),esc(&x.when),esc(&x.detail))).collect::<String>());
+    actions_ui::render(&out.actions);
     html(
         "notes-list",
         &out.notes
@@ -398,6 +409,7 @@ fn render_guidance(a: &App, out: &DiagnoseOutput) {
     hidden("guide-prior-demo-note", !demo);
     hidden("guide-ledger-demo-note", !demo);
     let _ = el("guide-slot-ledger").toggle_attribute_with_force("disabled", demo);
+    let _ = el("btn-sync-ledger-in-guide").toggle_attribute_with_force("disabled", demo);
     hidden("btn-try-guide", demo || entered);
     hidden("guide-demo-row", entered && !demo);
     hidden("next-step", !entered);
@@ -565,8 +577,14 @@ fn feedback(message: &str, success: bool) {
     feedback.set_text_content(Some(message));
 }
 fn categories(kind: &str) {
+    let chosen = val("lf-category");
+    let same_kind = val("lf-type") == kind;
     setval("lf-type", kind);
     active("data-lf-type", kind);
+    each("[data-lf-type]", |button| {
+        let pressed = button.get_attribute("data-lf-type").as_deref() == Some(kind);
+        let _ = button.set_attribute("aria-pressed", if pressed { "true" } else { "false" });
+    });
     let cats = if kind == "income" {
         ledger::INCOME
     } else {
@@ -579,7 +597,17 @@ fn categories(kind: &str) {
             .map(|x| format!("<option>{}</option>", esc(x)))
             .collect::<String>(),
     );
-    text("lf-date-label", "記録する日付（振込・支払日）");
+    if same_kind && cats.contains(&chosen.as_str()) {
+        setval("lf-category", chosen);
+    }
+    text(
+        "ledger-heading-date",
+        if kind == "income" {
+            "いつ振り込まれましたか？"
+        } else {
+            "いつ支払いましたか？"
+        },
+    );
     text(
         "lf-cat-label",
         if kind == "income" {
@@ -608,6 +636,9 @@ fn days() {
             .collect::<String>(),
     );
     setval("lf-day", d);
+    each("[data-date-preset='last-month-end']", |button| {
+        let _ = button.toggle_attribute_with_force("disabled", y == 2025 && m == 1);
+    });
 }
 fn slider_amount<'a>(input: &'a mut DiagnoseInput, slider: &str) -> Option<&'a mut i64> {
     match slider {
@@ -663,23 +694,12 @@ fn update(a: &mut App, id: &str) {
     }
     render_estimate(a);
 }
-fn add_entry(a: &mut App) {
-    if a.demo.is_some() && guide_dialog::current(a) == Some(guide_dialog::Page::Ledger) {
-        return;
-    }
-    if a.storage_protected {
-        feedback("保存済みデータの読み込みに失敗したため、上書きを停止しています。", false);
-        return;
-    }
-    let (y, m, d) = (
-        num("lf-year") as i32,
-        num("lf-month") as u32,
-        num("lf-day") as u32,
-    );
+fn add_entry(a: &mut App) -> Result<(), JsValue> {
+    let (y, m, d) = ledger_wizard::date();
     let amount = num("lf-amount");
     if !ledger::valid_date(y, m, d) || amount <= 0 || amount > 1_000_000_000 {
         feedback("日付と金額（1〜10億円の整数）を確認してください。", false);
-        return;
+        return Ok(());
     }
     let memo = val("lf-memo");
     a.entries.push(Entry {
@@ -699,11 +719,13 @@ fn add_entry(a: &mut App) {
     render_ledger(a);
     setval("lf-amount", "");
     setval("lf-memo", "");
+    ledger_wizard::restart(a)?;
     if a.storage_ok {
         feedback("✅ 記帳してこのブラウザに保存しました。", true);
     } else {
         feedback("⚠️ 記帳しましたが保存できません。CSVを保管してください。", false);
     }
+    Ok(())
 }
 fn share(a: &App) {
     let o = diagnose(&a.input);
@@ -755,6 +777,9 @@ fn download(a: &App) -> Result<(), JsValue> {
     Ok(())
 }
 fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
+    if let Some(result) = actions_ui::click(&e) {
+        return result;
+    }
     let id = e.id();
     let attr = |k: &str| e.get_attribute(k);
     if let Some(topic) = attr("data-guide-open") {
@@ -874,8 +899,11 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
             "last-month-end" => {
                 m -= 1;
                 if m == 0 {
+                    if y == 2025 {
+                        return Ok(());
+                    }
                     m = 12;
-                    y = 2025;
+                    y -= 1;
                 }
             }
             _ => {}
@@ -895,16 +923,15 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
     } else if let Some(v) = attr("data-help-key") {
         let id = format!("lf-pop-{v}");
         let show = el(&id).class_list().contains("hidden");
-        each(".lf-inline-popover", |e| class(&e, "hidden", true));
-        each("[data-help-key]", |button| {
-            let _ = button.set_attribute("aria-expanded", "false");
-        });
+        ledger_wizard::close_help();
         text(&id,match v.as_str(){"type"=>"売上は振込報酬、経費は配信業務に必要な支出を記録します。","date"=>"年・月・日を選択してください。月まとめの場合も証憑と対応できるように保管します。","category"=>"売上または経費の科目を選ぶと、年度ごとに自動集計します。","amount"=>"1円単位の整数で入力してください。私用分は経費から除きます。",_=>"後で確認できる内容や用途を記録してください。"});
         hidden(&id, !show);
         e.set_attribute("aria-expanded", if show { "true" } else { "false" })?;
         return Ok(());
     } else {
         match id.as_str() {
+            "btn-ledger-back" => return ledger_wizard::back(a),
+            "btn-ledger-next" => return ledger_wizard::advance(a),
             "guide-dialog-close" => return guide_dialog::close(a),
             "guide-dialog-back" => return guide_dialog::back(a),
             "btn-end-demo" | "btn-end-demo-adjust" => {
@@ -936,9 +963,12 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 toggle_speech(a)?;
                 return Ok(());
             }
-            "btn-sync-ledger-to-diag" => {
-                let in_guide = guide_dialog::current(a) == Some(guide_dialog::Page::Ledger);
-                if in_guide && a.demo.is_some() {
+            "btn-sync-ledger-to-diag" | "btn-sync-ledger-in-guide" => {
+                let in_guide = id == "btn-sync-ledger-in-guide";
+                if in_guide
+                    && (a.demo.is_some()
+                        || guide_dialog::current(a) != Some(guide_dialog::Page::Ledger))
+                {
                     return Ok(());
                 }
                 end_demo(a);
@@ -1118,6 +1148,7 @@ fn toggle_speech(a: &mut App) -> Result<(), JsValue> {
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {
     el("app").set_inner_html(include_str!("view.html"));
+    actions_ui::init()?;
     html(
         "pref-select",
         &rust_tax_engine::prefectures::NHI_TABLE
@@ -1179,7 +1210,11 @@ pub fn start() -> Result<(), JsValue> {
             if k == "submit" {
                 if target.id() == "ledger-form" {
                     event.prevent_default();
-                    APP.with(|a| add_entry(&mut a.borrow_mut()));
+                    APP.with(|a| {
+                        if let Err(error) = ledger_wizard::advance(&mut a.borrow_mut()) {
+                            web_sys::console::error_1(&error);
+                        }
+                    });
                 }
                 return;
             }

@@ -25,10 +25,18 @@ const $ = id => document.getElementById(id);
 const click = selector => document.querySelector(selector).click();
 const input = (id, value, kind='input') => {$(id).value=value;$(id).dispatchEvent(new dom.window.Event(kind,{bubbles:true}));};
 const hidden = id => $(id).hidden || $(id).classList.contains('hidden');
+const ledgerSteps = ['kind','date','category','amount','review'];
+const submitLedger = () => $('ledger-form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
+const storedLedger = () => window.localStorage.getItem('tiktok_liver_tax_ledger_v1');
+function assertLedgerStep(expected) {
+  assert.deepEqual(ledgerSteps.filter(step => !hidden(`ledger-step-${step}`)),[expected]);
+  assert.equal(hidden('btn-ledger-submit'),expected !== 'review');
+}
 if (corrupt) {
   input('lf-amount','1000');
-  $('ledger-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
-  assert.equal(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1'),'{invalid');
+  submitLedger();
+  assertLedgerStep('kind');
+  assert.equal(storedLedger(),'{invalid');
   assert.match($('lf-submit-feedback').textContent,/停止/);
   assert.deepEqual(browserErrors,[]);
   console.log('Corrupt stored ledger protected from overwrite.');
@@ -51,6 +59,7 @@ function escapeDialog(dialog) {
 }
 const afterDialogClose = () => new Promise(resolve => setImmediate(resolve));
 const guideDialog = mockDialog('guide-dialog');
+const actionDialog = mockDialog('action-dialog');
 const applicationDialog = mockDialog('blue-application-dialog');
 
 assert.equal($('result-income').textContent,'0円');
@@ -115,6 +124,38 @@ assert.equal($('result-expense').textContent,'15万円');
 assert.equal($('drawer-adjust').open,false);
 assert.equal($('compare-white-income').textContent,'165万円');
 assert.equal($('compare-blue-income').textContent,'100万円');
+click('#drawer-details > summary');
+assert.equal($('drawer-actions').open,false);
+click('#drawer-actions > summary');
+const actionTriggers = $('action-list').querySelectorAll('[data-action-index]');
+assert.ok(actionTriggers.length > 1);
+assert.equal($('action-list').querySelector('p'),null);
+const dismissActions = [
+  () => click('#action-dialog-back'),
+  () => click('#action-dialog-close'),
+  () => escapeDialog(actionDialog),
+];
+for (const [index, dismiss] of dismissActions.entries()) {
+  const trigger = actionTriggers[index % actionTriggers.length];
+  pageScroll = [0,480];
+  trigger.click();
+  assert.equal(actionDialog.open,true);
+  assert.equal($('action-dialog-title').textContent,trigger.querySelector('.action-title').textContent);
+  assert.equal(document.activeElement,$('action-dialog-title'));
+  assert.ok($('action-dialog-detail').textContent.trim());
+  assert.ok($('action-dialog-when').textContent.trim());
+  pageScroll = [0,0];
+  dismiss();
+  await afterDialogClose();
+  assert.equal(actionDialog.open,false);
+  assert.equal(document.activeElement,trigger);
+  assert.deepEqual(pageScroll,[0,480]);
+  assert.equal($('drawer-actions').open,true);
+}
+click('#drawer-actions > summary');
+assert.equal($('drawer-actions').open,false);
+click('#drawer-details > summary');
+pageScroll = [0,0];
 click('#mic-btn');
 click('#mic-btn');
 assert.equal(stopCalls,1);
@@ -206,30 +247,73 @@ click('#guide-income-tax');
 click('#guide-panel-income-tax [data-guide-target]');
 assert.equal(guideDialog.dataset.guideCategory,'ledger');
 assert.equal($('guide-slot-ledger').contains(ledgerForm),true);
+assert.equal(guideDialog.contains($('btn-sync-ledger-in-guide')),true);
+assert.equal(hidden('btn-sync-ledger-in-guide'),false);
+assert.equal(guideDialog.contains($('btn-sync-ledger-to-diag')),false);
 assert.equal($('drawer-ledger-pro').open,false);
 assert.equal($('lv-total-inc').textContent,'123,456円');
-for (const key of ['type','date','category','amount','memo']) {
+assertLedgerStep('kind');
+assert.equal(hidden('btn-ledger-back'),true);
+const firstLedgerProgress = $('ledger-progress-label').textContent;
+assert.ok(firstLedgerProgress.trim());
+for (const [index, key] of ['type','date','category','amount'].entries()) {
+  assertLedgerStep(ledgerSteps[index]);
   const button = document.querySelector(`[data-help-key="${key}"]`);
   const help = $(button.getAttribute('aria-controls'));
   assert.equal(button.closest('.lf-label-row').nextElementSibling,help);
   button.click();
   assert.equal(hidden(help.id),false);
   assert.equal(button.getAttribute('aria-expanded'),'true');
+  if (key === 'type') {
+    click('#btn-lf-expense');
+    assert.equal($('lf-type').value,'expense');
+    click('#btn-lf-income');
+    assert.equal($('lf-type').value,'income');
+  }
+  if (key === 'date') {
+    input('lf-year','2025','change');
+    input('lf-month','1','change');
+    const previousMonth = document.querySelector('[data-date-preset="last-month-end"]');
+    assert.equal(previousMonth.disabled,true);
+    input('lf-year','2026','change');
+    previousMonth.click();
+    assert.deepEqual(['lf-year','lf-month','lf-day'].map(id => $(id).value),['2025','12','31']);
+    input('lf-year','2026','change');
+    input('lf-month','2','change');
+    assert.equal($('lf-day').options.length,28);
+    input('lf-day','28','change');
+  }
+  if (key === 'category') input('lf-category',$('lf-category').options[1].value,'change');
+  if (key !== 'amount') click('#btn-ledger-next');
 }
+assert.notEqual($('ledger-progress-label').textContent,firstLedgerProgress);
 assert.equal(hidden('lf-pop-category'),true);
 assert.equal(document.querySelector('[data-help-key="category"]').getAttribute('aria-expanded'),'false');
-click('[data-help-key="memo"]');
-assert.equal(hidden('lf-pop-memo'),true);
-input('lf-amount','-1');
-ledgerForm.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));
-assert.match($('lf-submit-feedback').textContent,/日付と金額/);
-assert.equal($('lf-submit-feedback').classList.contains('is-error'),true);
-assert.equal(JSON.parse(window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,1);
+for (const invalidAmount of ['', '-1', '1.5', '1000000001']) {
+  input('lf-amount',invalidAmount);
+  submitLedger();
+  assertLedgerStep('amount');
+  assert.equal(document.activeElement,$('lf-amount'));
+  assert.equal($('lf-submit-feedback').classList.contains('is-error'),true);
+  assert.deepEqual(JSON.parse(storedLedger()),existing);
+}
 input('lf-amount','4500');
+click('#btn-ledger-back');
+assertLedgerStep('category');
+assert.equal($('lf-category').selectedIndex,1);
+click('#btn-ledger-back');
+assertLedgerStep('date');
+assert.deepEqual(['lf-year','lf-month','lf-day'].map(id => $(id).value),['2026','2','28']);
+click('#btn-ledger-next');
+assertLedgerStep('category');
+click('#btn-ledger-next');
+assertLedgerStep('amount');
+assert.equal($('lf-amount').value,'4500');
 escapeDialog(guideDialog);
 await afterDialogClose();
 assert.equal(guideDialog.open,false);
 assert.equal(ledgerForm.parentElement,ledgerHome);
+assertLedgerStep('amount');
 assert.equal($('lf-amount').value,'4500');
 assert.equal(document.activeElement,$('guide-income-tax'));
 click('#check-filed-2025');
@@ -325,12 +409,56 @@ assert.match($('income-tax-note').textContent,/配信による増加分/);
 assert.match($('income-combined-formula').textContent,/350万円.*216万円.*566万円/);
 click('[data-has-salary="false"]');
 assert.equal($('income-salary-summary').classList.contains('hidden'),true);
-input('lf-year','2026','change');input('lf-month','2','change');assert.equal($('lf-day').options.length,28);
-input('lf-day','28','change');input('lf-amount','4567');input('lf-memo','テスト');
-$('ledger-form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
-assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,2);
+click('#drawer-ledger-pro > summary');
+assertLedgerStep('amount');
+input('lf-amount','4567');
+submitLedger();
+assertLedgerStep('review');
+assert.equal(document.activeElement,$('ledger-heading-review'));
+assert.equal(hidden('btn-ledger-next'),true);
+assert.equal($('lf-review-kind').textContent,'売上');
+assert.equal($('lf-review-date').textContent,'2026年2月28日');
+assert.equal($('lf-review-category').textContent,'イベント・案件報酬');
+assert.match($('lf-review-amount').textContent,/4,567円/);
+const memoHelpButton = $('ledger-step-review').querySelector('[data-help-key="memo"]');
+memoHelpButton.click();
+assert.equal(hidden('lf-pop-memo'),false);
+assert.equal(memoHelpButton.getAttribute('aria-expanded'),'true');
+memoHelpButton.click();
+assert.equal(hidden('lf-pop-memo'),true);
+input('lf-memo','テスト');
+click('#btn-ledger-back');
+assertLedgerStep('amount');
+assert.equal($('lf-amount').value,'4567');
+click('#btn-ledger-next');
+assertLedgerStep('review');
+assert.equal($('lf-memo').value,'テスト');
+assert.deepEqual(JSON.parse(storedLedger()),existing);
+click('#btn-ledger-submit');
+const entriesAfterSave = JSON.parse(storedLedger());
+assert.equal(entriesAfterSave.length,2);
+const [originalEntry,{id: savedId,...savedEntry}] = entriesAfterSave;
+assert.deepEqual(originalEntry,existing[0]);
+assert.ok(savedId);
+assert.deepEqual(savedEntry,{
+  date:'2026-02-28',type:'income',category:'イベント・案件報酬',amount:4567,memo:'テスト',
+});
+assertLedgerStep('kind');
+assert.equal($('ledger-progress-label').textContent,firstLedgerProgress);
+assert.deepEqual(['lf-year','lf-month','lf-day'].map(id => $(id).value),['2026','2','28']);
+assert.equal($('lf-amount').value,'');
+assert.equal($('lf-memo').value,'');
 assert.equal($('lf-submit-feedback').classList.contains('is-success'),true);
 click('#btn-sync-ledger-to-diag');assert.equal($('val-inc-2026').textContent,'12.8万円');
+input('slider-inc-2026','400');
+click('#guide-income-tax');
+click('#guide-panel-income-tax [data-guide-target]');
+assert.equal($('guide-slot-ledger').contains(ledgerForm),true);
+click('#btn-sync-ledger-in-guide');
+await afterDialogClose();
+assert.equal(guideDialog.open,false);
+assert.equal(ledgerForm.parentElement,ledgerHome);
+assert.equal($('val-inc-2026').textContent,'12.8万円');
 click('[data-step-target="slider-inc-2026"][data-step-delta="10"]');
 assert.equal($('slider-inc-2026').getAttribute('aria-valuetext'),'228,023円');
 click('[data-step-target="slider-inc-2026"][data-step-delta="-10"]');
@@ -342,4 +470,4 @@ click('#btn-screenshot-mode');assert.equal(document.body.classList.contains('scr
 confirmed=false;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,2);
 confirmed=true;click('[data-del-id="existing"]');assert.equal(JSON.parse(dom.window.localStorage.getItem('tiktok_liver_tax_ledger_v1')).length,1);
 assert.deepEqual(browserErrors,[]);
-console.log('Wasm UI checks passed: sliders, guide dialogs, inline help, ledger validation, focus and scroll return, share, screenshots.');
+console.log('Wasm UI checks passed: sliders, guide and action dialogs, ledger wizard and storage, focus and scroll return, share, screenshots.');

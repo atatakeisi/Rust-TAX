@@ -339,6 +339,14 @@
             <button type="button" id="btn-copy-line" class="mini-action-btn primary">💬 LINEコピー</button>
           </div>
 
+          <details id="drawer-actions" class="result-fold action-drawer">
+            <summary class="drawer-summary">
+              <span>やることリスト</span>
+              <span class="drawer-hint" aria-hidden="true"><span class="hint-closed">開く ▼</span><span class="hint-open">閉じる ▲</span></span>
+            </summary>
+            <ul id="action-list" class="action-list"></ul>
+          </details>
+
           <div class="money-split-grid">
             <div class="money-card safe-card">
               <div class="money-card-label">💰 配信の手残り目安</div>
@@ -475,12 +483,6 @@
             </div>
           </div>
 
-          <!-- 今すぐやるべきアクションリスト -->
-          <div class="diag-block">
-            <h3 class="diag-title">✅ 【今すぐやるべきアクションリスト】</h3>
-            <ul id="action-list" class="action-list"></ul>
-          </div>
-
           <!-- 前提・注意書き -->
           <ul id="notes-list" class="notes-list"></ul>
         </div>
@@ -494,47 +496,51 @@
           <span class="pro-switch-cta" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
         </summary>
         <div class="pro-ledger-body">
-          <p class="ledger-intro">
-            日々の売上・毎月の振込額・経費を<strong>1円単位で日付とセットで記帳</strong>すると、確定申告（青色決算書・収支内訳書）に必要な科目別集計と検証表が自動作成されます。
-          </p>
+          <p class="ledger-intro">日々の入金や経費を記録して、配信の収支を自分でチェックしましょう。</p>
 
-          <!-- 日付つき仕訳入力フォーム -->
           <div id="ledger-form-home">
             <form id="ledger-form" class="ledger-form" novalidate>
-              <!-- ① 入ってきたお金 or 使ったお金 -->
-              <div class="lf-section">
+              <div class="ledger-progress">
+                <p id="ledger-progress-label" aria-live="polite">ステップ 1 / 5</p>
+                <ol class="ledger-progress-track" aria-label="記帳の流れ">
+                  <li aria-current="step">区分</li>
+                  <li>日付</li>
+                  <li>科目</li>
+                  <li>金額</li>
+                  <li>確認</li>
+                </ol>
+              </div>
+
+              <section id="ledger-step-kind" class="lf-section ledger-step" aria-labelledby="ledger-heading-kind">
                 <div class="lf-label-row">
-                  <span class="lf-step-badge">①</span>
-                  <span class="lf-label-title">どっちのお金ですか？（タップで切替）</span>
-                  <button type="button" class="lf-help-chip" data-help-key="type" aria-controls="lf-pop-type" aria-expanded="false">❓ 使い分けの説明</button>
+                  <h3 class="lf-label-title" id="ledger-heading-kind" tabindex="-1">どちらのお金を記録しますか？</h3>
+                  <button type="button" class="lf-help-chip" data-help-key="type" aria-controls="lf-pop-type" aria-expanded="false">使い分けの説明</button>
                 </div>
                 <div id="lf-pop-type" class="lf-inline-popover hidden"></div>
                 <input type="hidden" id="lf-type" value="income" />
                 <div class="lf-type-grid">
-                  <button type="button" id="btn-lf-income" class="lf-type-card income-card active" data-lf-type="income">
-                    <span class="lf-type-title">💴 入ってきたお金（売上）</span>
-                    <span class="lf-type-desc">TikTokから口座に振り込まれたお金・イベント賞金・案件報酬など</span>
+                  <button type="button" id="btn-lf-income" class="lf-type-card income-card active" data-lf-type="income" aria-pressed="true">
+                    <span class="lf-type-title">入ってきたお金（売上）</span>
+                    <span class="lf-type-desc">TikTokの振込、イベント賞金、案件報酬など</span>
                   </button>
-                  <button type="button" id="btn-lf-expense" class="lf-type-card expense-card" data-lf-type="expense">
-                    <span class="lf-type-title">🧾 配信に使ったお金（経費）</span>
-                    <span class="lf-type-desc">ライト・マイク・スマホ代・配信用の服やコスメ・交通費・家賃の一部など</span>
+                  <button type="button" id="btn-lf-expense" class="lf-type-card expense-card" data-lf-type="expense" aria-pressed="false">
+                    <span class="lf-type-title">配信に使ったお金（経費）</span>
+                    <span class="lf-type-desc">配信用のライト、マイク、通信費など</span>
                   </button>
                 </div>
-              </div>
+              </section>
 
-              <!-- ② いつの分？ -->
-              <div class="lf-section">
+              <section id="ledger-step-date" class="lf-section ledger-step hidden" aria-labelledby="ledger-heading-date">
                 <div class="lf-label-row">
-                  <span class="lf-step-badge">②</span>
-                  <span class="lf-label-title" id="lf-date-label">いつの振込ですか？（振込日・売上月）</span>
-                  <button type="button" class="lf-help-chip" data-help-key="date" aria-controls="lf-pop-date" aria-expanded="false">❓ 日付の入れ方</button>
+                  <h3 class="lf-label-title" id="ledger-heading-date" tabindex="-1">いつのお金ですか？</h3>
+                  <button type="button" class="lf-help-chip" data-help-key="date" aria-controls="lf-pop-date" aria-expanded="false">日付の入れ方</button>
                 </div>
                 <div id="lf-pop-date" class="lf-inline-popover hidden"></div>
                 <div class="lf-date-selects">
                   <label class="lf-date-unit">
                     <select id="lf-year" aria-label="年">
-                      <option value="2026" selected>2026年（今年）</option>
-                      <option value="2025">2025年（昨年）</option>
+                      <option value="2026" selected>2026年</option>
+                      <option value="2025">2025年</option>
                     </select>
                   </label>
                   <label class="lf-date-unit">
@@ -545,83 +551,66 @@
                   </label>
                 </div>
                 <div class="lf-quick-row">
-                  <span class="lf-quick-caption">ワンタップ日付:</span>
-                  <button type="button" class="lf-quick-btn" data-date-preset="today">📅 今日</button>
-                  <button type="button" class="lf-quick-btn" data-date-preset="this-month-end">📅 今月末（月まとめ）</button>
-                  <button type="button" class="lf-quick-btn" data-date-preset="last-month-end">📅 先月末（先月まとめ）</button>
-                  <button type="button" class="lf-quick-btn" data-date-preset="2025-end">📅 2025年末まとめ</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="today">今日</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="this-month-end">選んだ月の月末</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="last-month-end">選んだ月の前月末</button>
+                  <button type="button" class="lf-quick-btn" data-date-preset="2025-end">2025年末</button>
                 </div>
-              </div>
+              </section>
 
-              <!-- ③ 種類（勘定科目）＆ ④ 金額 -->
-              <div class="ledger-form-row">
-                <div class="lf-section">
-                  <div class="lf-label-row">
-                    <span class="lf-step-badge">③</span>
-                    <label class="lf-label-title" for="lf-category" id="lf-cat-label">売上の種類（自動分類）</label>
-                    <button type="button" class="lf-help-chip" data-help-key="category" aria-controls="lf-pop-category" aria-expanded="false">❓ 項目とは？</button>
-                  </div>
-                  <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
-                  <select id="lf-category" class="lf-select-input"></select>
-                  <p class="lf-micro-hint">※ 1件記帳するたびに下の集計表へ自動で足し算されます</p>
-                </div>
-
-                <div class="lf-section">
-                  <div class="lf-label-row">
-                    <span class="lf-step-badge">④</span>
-                    <label class="lf-label-title" for="lf-amount" id="lf-amount-label">振り込まれた金額（1円単位OK）</label>
-                    <button type="button" class="lf-help-chip" data-help-key="amount" aria-controls="lf-pop-amount" aria-expanded="false">❓ 何の金額？</button>
-                  </div>
-                  <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
-                  <div class="lf-amount-wrap">
-                    <input
-                      type="number"
-                      id="lf-amount"
-                      min="1"
-                      step="1"
-                      inputmode="numeric"
-                      placeholder="例: 158420（1円単位でも万単位でもOK）"
-                    />
-                    <span class="lf-yen-suffix">円</span>
-                  </div>
-                  <div class="lf-quick-row">
-                    <span class="lf-quick-caption">ワンタップ加算:</span>
-                    <button type="button" class="lf-quick-btn" data-amt-add="1000">＋1千円</button>
-                    <button type="button" class="lf-quick-btn" data-amt-add="10000">＋1万円</button>
-                    <button type="button" class="lf-quick-btn" data-amt-add="50000">＋5万円</button>
-                    <button type="button" class="lf-quick-btn" data-amt-add="100000">＋10万円</button>
-                    <button type="button" class="lf-quick-btn clear" data-amt-clear="true">クリア</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ⑤ メモ（任意） -->
-              <div class="lf-section">
+              <section id="ledger-step-category" class="lf-section ledger-step hidden" aria-labelledby="ledger-heading-category">
                 <div class="lf-label-row">
-                  <span class="lf-step-badge">⑤</span>
-                  <label class="lf-label-title" for="lf-memo">メモ（空欄でもOK！後で見てわかる一言）</label>
-                  <button type="button" class="lf-help-chip" data-help-key="memo" aria-controls="lf-pop-memo" aria-expanded="false">❓ メモのコツ</button>
+                  <h3 id="ledger-heading-category" tabindex="-1"><label class="lf-label-title" for="lf-category" id="lf-cat-label">売上の種類</label></h3>
+                  <button type="button" class="lf-help-chip" data-help-key="category" aria-controls="lf-pop-category" aria-expanded="false">科目の選び方</button>
+                </div>
+                <div id="lf-pop-category" class="lf-inline-popover hidden"></div>
+                <select id="lf-category" class="lf-select-input"></select>
+              </section>
+
+              <section id="ledger-step-amount" class="lf-section ledger-step hidden" aria-labelledby="ledger-heading-amount">
+                <div class="lf-label-row">
+                  <h3 id="ledger-heading-amount" tabindex="-1"><label class="lf-label-title" for="lf-amount" id="lf-amount-label">振り込まれた金額（円）</label></h3>
+                  <button type="button" class="lf-help-chip" data-help-key="amount" aria-controls="lf-pop-amount" aria-expanded="false">金額の入れ方</button>
+                </div>
+                <div id="lf-pop-amount" class="lf-inline-popover hidden"></div>
+                <div class="lf-amount-wrap">
+                  <input type="number" id="lf-amount" min="1" max="1000000000" step="1" inputmode="numeric" placeholder="例 158420" />
+                  <span class="lf-yen-suffix" aria-hidden="true">円</span>
+                </div>
+                <div class="lf-quick-row">
+                  <button type="button" class="lf-quick-btn" data-amt-add="1000">＋1千円</button>
+                  <button type="button" class="lf-quick-btn" data-amt-add="10000">＋1万円</button>
+                  <button type="button" class="lf-quick-btn" data-amt-add="50000">＋5万円</button>
+                  <button type="button" class="lf-quick-btn" data-amt-add="100000">＋10万円</button>
+                  <button type="button" class="lf-quick-btn clear" data-amt-clear="true">クリア</button>
+                </div>
+              </section>
+
+              <section id="ledger-step-review" class="lf-section ledger-step hidden" aria-labelledby="ledger-heading-review">
+                <h3 class="lf-label-title" id="ledger-heading-review" tabindex="-1">入力内容を確認しましょう</h3>
+                <dl class="ledger-review">
+                  <dt>区分</dt><dd id="lf-review-kind"></dd>
+                  <dt>日付</dt><dd id="lf-review-date"></dd>
+                  <dt>科目</dt><dd id="lf-review-category"></dd>
+                  <dt>金額</dt><dd id="lf-review-amount"></dd>
+                </dl>
+                <div class="lf-label-row">
+                  <label class="lf-label-title" for="lf-memo">メモ（任意）</label>
+                  <button type="button" class="lf-help-chip" data-help-key="memo" aria-controls="lf-pop-memo" aria-expanded="false">メモのコツ</button>
                 </div>
                 <div id="lf-pop-memo" class="lf-inline-popover hidden"></div>
-                <input
-                  type="text"
-                  id="lf-memo"
-                  class="lf-text-input"
-                  placeholder="例: 11月分 TikTok振込（空欄なら③の種類名が自動で入ります）"
-                />
-              </div>
+                <input type="text" id="lf-memo" class="lf-text-input" placeholder="例 11月分のTikTok振込" />
+              </section>
 
-              <!-- 記帳ボタンを押したときの完了/未入力メッセージ（ボタンの真上に吹き出し表示） -->
-                <div id="lf-submit-feedback" class="lf-submit-feedback hidden" role="status"></div>
-
-              <div class="ledger-form-actions">
-                <button type="submit" class="btn-add-entry">➕ 台帳に日付順で記帳する（リアルタイム集計）</button>
-                <button type="button" id="btn-sync-ledger-to-diag" class="btn-sync-diag">
-                  🔄 台帳の合計額で上の税金診断を更新
-                </button>
+              <div id="lf-submit-feedback" class="lf-submit-feedback hidden" role="status"></div>
+              <div class="ledger-navigation">
+                <button type="button" id="btn-ledger-back" class="ledger-back hidden">戻る</button>
+                <button type="button" id="btn-ledger-next" class="btn-add-entry ledger-next">次へ</button>
+                <button type="submit" id="btn-ledger-submit" class="btn-add-entry hidden">台帳に記帳する</button>
               </div>
             </form>
           </div>
+          <button type="button" id="btn-sync-ledger-to-diag" class="btn-sync-diag">台帳の合計を試算に反映する</button>
 
           <!-- 年度タブ切替（2026年分 / 2025年分）＆CSV出力 -->
           <div class="ledger-toolbar">
@@ -793,6 +782,27 @@
       </div>
       <footer class="guide-dialog-footer">
         <button type="button" id="guide-dialog-back" class="guide-dialog-back">試算に戻る</button>
+        <button type="button" id="btn-sync-ledger-in-guide" class="btn-sync-diag hidden">台帳の合計を試算に反映して閉じる</button>
+      </footer>
+    </dialog>
+
+    <dialog id="action-dialog" class="guide-dialog action-dialog" aria-labelledby="action-dialog-title">
+      <header class="guide-dialog-header">
+        <div>
+          <p class="guide-dialog-location">扶養・納付・共有 / やることリスト</p>
+          <h2 id="action-dialog-title" tabindex="-1" autofocus></h2>
+        </div>
+        <button type="button" id="action-dialog-close" class="guide-dialog-close">閉じる</button>
+      </header>
+      <div id="action-dialog-body" class="guide-dialog-body">
+        <p id="action-dialog-detail" class="action-detail"></p>
+        <p id="action-dialog-timing" class="action-timing">
+          <strong>取り組む時期</strong>
+          <span id="action-dialog-when"></span>
+        </p>
+      </div>
+      <footer class="guide-dialog-footer">
+        <button type="button" id="action-dialog-back" class="guide-dialog-back">← 一覧に戻る</button>
       </footer>
     </dialog>
 
