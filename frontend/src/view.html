@@ -14,6 +14,11 @@
         <span class="mic-label-sub">「今年の配信収入180万、経費15万」</span>
       </button>
       <p id="mic-status" class="mic-status hidden" role="status"></p>
+      <div id="guide-demo-row" class="guide-demo-row">
+        <button type="button" id="btn-try-guide" class="sample-chip"
+          data-voice-sample="20歳、去年の配信収入150万、今年の配信収入280万、経費30万">入力例で流れを試す</button>
+        <button type="button" id="btn-end-demo" class="sample-chip hidden">自分の入力に戻る</button>
+      </div>
 
       <details id="drawer-adjust" class="manual-adjust-drawer">
         <summary class="manual-adjust-summary">
@@ -21,12 +26,15 @@
           <span class="drawer-hint" aria-hidden="true"><span class="hint-closed">タップで開く ▼</span><span class="hint-open">タップで閉じる ▲</span></span>
         </summary>
         <div class="drawer-body">
+          <div id="adjust-demo-notice" class="guide-demo-row hidden">
+            <span>入力例を表示中です。</span>
+            <button type="button" id="btn-end-demo-adjust" class="sample-chip">自分の入力に戻る</button>
+          </div>
+          <fieldset id="adjust-fields" class="adjust-fields">
           <label class="transcript-label" for="voice-transcript-input">認識した内容・テキスト入力</label>
           <input id="voice-transcript-input" class="transcript-input" type="text"
             placeholder="例：20歳 大阪 去年50万 今年250万 経費30万" />
           <div class="transcript-actions">
-            <button type="button" class="sample-chip"
-              data-voice-sample="20歳で、去年10月から始めて50万、今年は250万振り込まれて、経費は30万くらい">入力例を試す</button>
             <button type="button" class="sample-chip" id="btn-show-result">試算を見る</button>
           </div>
 
@@ -76,7 +84,7 @@
             </div>
 
             <!-- 2025年（昨年）ボックス -->
-            <details class="year-box year-2025">
+            <details id="drawer-input-2025" class="year-box year-2025">
               <summary class="fold-summary">2025年分の入力</summary>
 
               <div class="slider-block">
@@ -183,12 +191,14 @@
             <label class="field-label" for="pref-select">国保の試算に使う都道府県</label>
             <select id="pref-select" class="select-box"></select>
           </div>
+          </fieldset>
         </div>
       </details>
     </section>
 
     <section id="result-card" class="result-card" data-overall="out" data-biz-mode="white" aria-label="試算結果">
       <h2 id="comparison-title" class="comparison-title" tabindex="-1">2026年分の試算</h2>
+      <p id="demo-indicator" class="estimate-caption hidden">入力例を表示中。音声入力を始めると自分の入力に戻ります。</p>
       <dl class="input-totals">
         <div><dt>配信収入</dt><dd id="result-income">0円</dd></div>
         <div><dt>経費</dt><dd id="result-expense">0円</dd></div>
@@ -234,7 +244,98 @@
         </div>
         <p id="comparison-assumption" class="estimate-caption">青色は65万円控除の要件を満たす場合の目安です。</p>
         <p id="income-tax-note" class="estimate-caption hidden">所得税・住民税は、配信による増加分の目安です。</p>
+        <p id="insurance-estimate-note" class="estimate-caption hidden">国保は選んだ加入先での年額試算です。年の途中で切り替えた分は通知書で確認してください。</p>
       </div>
+
+      <section id="next-step" class="next-step hidden" aria-labelledby="next-step-title">
+        <div class="next-step-header">
+          <h3 id="next-step-title">次の一歩</h3>
+          <span id="next-step-badge" class="status-badge hidden"></span>
+        </div>
+        <p id="next-step-copy"></p>
+        <button type="button" id="btn-next-step" class="mini-action-btn next-step-primary"></button>
+      </section>
+
+      <details id="drawer-next-steps" class="result-fold hidden">
+        <summary class="drawer-summary">
+          <strong>手続きチェックリスト</strong>
+          <span id="guidance-count" class="drawer-hint"></span>
+        </summary>
+        <p id="guidance-note" class="estimate-caption"></p>
+        <ul class="guidance-list">
+          <li class="guidance-item">
+            <details id="guide-prior-return" class="guidance-task">
+              <summary class="guidance-task-summary"><span id="guide-title-prior-return"></span><span id="guide-status-prior-return" class="status-badge"></span></summary>
+              <div class="guidance-task-body">
+                <p id="guide-copy-prior-return"></p>
+                <div class="guidance-controls">
+                  <button type="button" class="mini-action-btn" data-guide-target="prior-return">2025年分の入力を確認</button>
+                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2024.htm" target="_blank" rel="noopener">国税庁の期限後申告案内</a>
+                  <button type="button" id="guide-check-prior-return" class="mini-action-btn" data-guide-check="prior-return"></button>
+                </div>
+              </div>
+            </details>
+          </li>
+          <li class="guidance-item">
+            <details id="guide-health" class="guidance-task">
+              <summary class="guidance-task-summary"><span id="guide-title-health"></span><span id="guide-status-health" class="status-badge"></span></summary>
+              <div class="guidance-task-body">
+                <p id="guide-copy-health"></p>
+                <div class="guidance-controls">
+                  <label for="guide-health-coverage">いま入っている保険</label>
+                  <select id="guide-health-coverage" class="select-box">
+                    <option value="unknown">分からない・その他</option>
+                    <option value="dependent">親などの健康保険の扶養</option>
+                    <option value="employer">勤務先の健康保険</option>
+                    <option value="national">国民健康保険</option>
+                  </select>
+                  <a href="https://www.kyoukaikenpo.or.jp/faq/dependent_status/" target="_blank" rel="noopener">協会けんぽの扶養確認</a>
+                  <a href="https://www.city.shizuoka.lg.jp/s8435/s000658.html" target="_blank" rel="noopener">国保の手続き例（静岡市）</a>
+                  <button type="button" id="guide-check-health" class="mini-action-btn" data-guide-check="health"></button>
+                </div>
+              </div>
+            </details>
+          </li>
+          <li class="guidance-item">
+            <details id="guide-resident" class="guidance-task">
+              <summary class="guidance-task-summary"><span id="guide-title-resident"></span><span id="guide-status-resident" class="status-badge"></span></summary>
+              <div class="guidance-task-body">
+                <p id="guide-copy-resident"></p>
+                <div class="guidance-controls">
+                  <a href="https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/zeikin/y-shizei/kojin-shiminzei-kenminzei/kojin-shiminzei-shosai/shinkokunouzei.html" target="_blank" rel="noopener">住民税の通知と納付方法の例（横浜市）</a>
+                  <button type="button" id="guide-check-resident" class="mini-action-btn" data-guide-check="resident"></button>
+                </div>
+              </div>
+            </details>
+          </li>
+          <li class="guidance-item">
+            <details id="guide-income-tax" class="guidance-task">
+              <summary class="guidance-task-summary"><span id="guide-title-income-tax"></span><span id="guide-status-income-tax" class="status-badge"></span></summary>
+              <div class="guidance-task-body">
+                <p id="guide-copy-income-tax"></p>
+                <div class="guidance-controls">
+                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2020.htm" target="_blank" rel="noopener">国税庁の確定申告案内</a>
+                  <button type="button" class="mini-action-btn" data-guide-target="ledger">収支台帳を開く</button>
+                  <button type="button" id="guide-check-income-tax" class="mini-action-btn" data-guide-check="income-tax"></button>
+                </div>
+              </div>
+            </details>
+          </li>
+          <li class="guidance-item">
+            <details id="guide-blue" class="guidance-task">
+              <summary class="guidance-task-summary"><span id="guide-title-blue"></span><span id="guide-status-blue" class="status-badge"></span></summary>
+              <div class="guidance-task-body">
+                <p id="guide-copy-blue"></p>
+                <div class="guidance-controls">
+                  <button type="button" class="mini-action-btn" data-guide-target="blue" aria-haspopup="dialog">青色申告は何年分から？</button>
+                  <a href="https://www.nta.go.jp/taxes/shiraberu/taxanswer/shotoku/2070.htm" target="_blank" rel="noopener">国税庁の青色申告案内</a>
+                  <button type="button" id="guide-check-blue" class="mini-action-btn" data-guide-check="blue"></button>
+                </div>
+              </div>
+            </details>
+          </li>
+        </ul>
+      </details>
 
       <details id="drawer-calculation" class="result-fold">
         <summary class="drawer-summary">
@@ -270,31 +371,29 @@
             <button type="button" id="btn-copy-line" class="mini-action-btn primary">💬 LINEコピー</button>
           </div>
 
-          <!-- 手元に残る安全なお金 ＆ 分割で届く納付書の月別備えプラン（一撃総額のショックを和らげる設計） -->
           <div class="money-split-grid">
             <div class="money-card safe-card">
-              <div class="money-card-label">💰 手元に残る安全なお金</div>
-              <div class="money-card-sub">売上から経費・税金・国保を引いた自由に使えるお金</div>
+              <div class="money-card-label">💰 配信の手残り目安</div>
+              <div class="money-card-sub">2026年の配信収入から経費と試算上の税・保険料等を差し引いた額</div>
               <div id="free-money-amount" class="money-card-big">0円</div>
               <div id="free-money-exact" class="money-card-exact"></div>
-              <div class="aside-tip">✨ 収入が増えるほど、手元に残るお金も増えます</div>
             </div>
 
             <div class="money-card reserve-card">
-              <div class="money-card-label">📮 役所から届く納付書への備え（分割払いの目安）</div>
-              <div class="money-card-sub">一度に全額は来ません！時期が来たら順番に払えるようよけておく目安</div>
+              <div class="money-card-label">📮 2026年分の納付への備え</div>
+              <div class="money-card-sub">年間の試算を12か月で割った積立目安。納期限は申告案内や通知書で確認。</div>
               <div class="reserve-monthly-row">
                 <span class="reserve-monthly-caption">月ならし目安</span>
                 <strong id="reserve-monthly-amount" class="money-card-big">月 0円</strong>
-                <span class="reserve-monthly-Sub">（振込の <strong id="aside-percent">15%</strong> を別口座へ）</span>
               </div>
               <ul id="payment-schedule-list" class="payment-schedule-list">
-                <li>📅 <strong>3月（所得税）</strong>: <span id="sched-it">0円</span></li>
-                <li>📅 <strong>6月〜年4回（住民税）</strong>: <span id="sched-rt">1回 0円</span></li>
-                <li>📅 <strong>6月〜月々（国保・全10回）</strong>: <span id="sched-nhi">1回 0円</span></li>
+                <li><strong>所得税</strong> <span id="sched-it">0円</span></li>
+                <li><strong>住民税（2027年度）</strong> <span id="sched-rt">0円</span></li>
+                <li><strong>国保</strong> <span id="sched-nhi">0円</span></li>
+                <li><strong>国民年金</strong> <span id="sched-pension">0円</span></li>
               </ul>
               <div class="reserve-year-total">
-                <span>年間合計の現実ライン:</span>
+                <span>年間の負担目安</span>
                 <strong id="lock-total-amount">0円</strong>
                 <small id="lock-total-exact"></small>
               </div>
@@ -323,7 +422,7 @@
 
           <!-- 2025年分の無申告・期限後申告アラート（該当する場合のみ表示） -->
           <div id="late-filing-banner" class="late-alert-box hidden">
-            <div class="late-alert-title">🚨 2025年（昨年）分の期限後申告が必要です</div>
+            <div class="late-alert-title">2025年分の申告状況を確認</div>
             <p id="late-filing-msg" class="late-alert-msg"></p>
             <div id="late-filing-numbers" class="late-alert-num"></div>
           </div>

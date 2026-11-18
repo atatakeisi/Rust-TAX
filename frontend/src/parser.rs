@@ -1,5 +1,5 @@
 use regex::Regex;
-use rust_tax_engine::model::DiagnoseInput;
+use rust_tax_engine::model::{DiagnoseInput, HealthCoverage};
 fn re(s: &str) -> Regex {
     Regex::new(s).unwrap()
 }
@@ -90,7 +90,7 @@ pub fn apply(raw: &str, s: &mut DiagnoseInput) {
         s.lives_alone = false;
     }
     if re("社保加入|社会保険に加入").is_match(&text) {
-        s.salary_has_shaho = true;
+        s.health_coverage_2026 = HealthCoverage::Employer;
     }
     if re("配信のみ|ライバーのみ|(?:バイト|給与|本業).*(?:なし|してない)").is_match(&text)
     {

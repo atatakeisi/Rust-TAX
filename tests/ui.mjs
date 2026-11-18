@@ -23,6 +23,7 @@ if (corrupt) {
   process.exit(0);
 }
 assert.equal($('result-income').textContent,'0円');
+assert.equal($('next-step').classList.contains('hidden'),true);
 for (const id of ['drawer-adjust','drawer-calculation','drawer-details','drawer-ledger-pro']) {
   assert.equal($(id).open,false);
 }
@@ -39,8 +40,16 @@ input('pref-select','0','change');assert.match($('result-meta').textContent,/北
 click('#mic-btn');
 assert.equal($('drawer-adjust').open,true);
 assert.equal(document.activeElement,$('voice-transcript-input'));
-click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'250万円');
+click('[data-voice-sample]');assert.equal($('val-inc-2026').textContent,'280万円');
 assert.equal($('drawer-adjust').open,false);
+assert.equal($('demo-indicator').classList.contains('hidden'),false);
+assert.equal($('adjust-fields').disabled,true);
+assert.match($('btn-next-step').textContent,/2025年分の確定申告/);
+click('#btn-next-step');
+assert.equal($('guide-prior-return').open,true);
+assert.equal($('guide-check-prior-return').classList.contains('hidden'),true);
+assert.equal(window.localStorage.getItem('rust_tax_guidance_checked_v1'),null);
+assert.equal($('lv-total-inc').textContent,'123,456円');
 let recognition;
 let stopCalls = 0;
 window.SpeechRecognition = class {
@@ -55,6 +64,9 @@ recognition.onend();
 assert.equal($('mic-btn').disabled,false);
 assert.match($('mic-label-main').textContent,/タップして状況を喋る/);
 assert.equal($('result-income').textContent,'180万円');
+assert.equal($('demo-indicator').classList.contains('hidden'),true);
+assert.equal($('adjust-fields').disabled,false);
+assert.equal($('val-inc-2025').textContent,'0円');
 assert.equal($('result-expense').textContent,'15万円');
 assert.equal($('drawer-adjust').open,false);
 assert.equal($('compare-white-income').textContent,'165万円');
@@ -71,9 +83,35 @@ document.dispatchEvent(new window.Event('visibilitychange'));
 assert.equal(stopCalls,2);
 recognition.onend();
 assert.equal($('mic-btn').disabled,false);
+click('#guide-check-prior-return');
+assert.match($('guide-status-prior-return').textContent,/確認済み/);
 input('voice-transcript-input','24歳、大阪、去年80万、今年400万、経費60万、青色申告');
 assert.equal($('val-inc-2026').textContent,'400万円');assert.match($('result-meta').textContent,/大阪/);
 assert.equal($('result-card').dataset.bizMode,'white');
+assert.match($('btn-next-step').textContent,/2025年分の確定申告/);
+assert.doesNotMatch($('guide-status-prior-return').textContent,/確認済み/);
+click('#btn-next-step');
+click('#guide-prior-return [data-guide-target]');
+assert.equal($('drawer-input-2025').open,true);
+click('#check-filed-2025');
+assert.match($('btn-next-step').textContent,/健康保険を確認/);
+click('#btn-next-step');
+assert.equal($('guide-health').open,true);
+input('guide-health-coverage','dependent','change');
+assert.match($('guide-copy-health').textContent,/資格取得日まで遡った保険料/);
+assert.notEqual($('compare-white-nhi').textContent,'0円');
+input('guide-health-coverage','employer','change');
+assert.equal($('compare-white-nhi').textContent,'0円');
+assert.doesNotMatch($('btn-next-step').textContent,/健康保険を確認/);
+assert.match($('guide-copy-resident').textContent,/通知書|通知の受け取り方/);
+click('#guide-check-resident');
+assert.match($('guide-status-resident').textContent,/確認済み/);
+assert.deepEqual(Object.keys(JSON.parse(window.localStorage.getItem('rust_tax_guidance_checked_v1'))),['prior_return','resident']);
+click('#guide-income-tax [data-guide-target]');
+assert.equal($('drawer-ledger-pro').open,true);
+assert.equal($('lv-total-inc').textContent,'123,456円');
+click('#check-filed-2025');
+input('guide-health-coverage','unknown','change');
 const applicationDialog = $('blue-application-dialog');
 // jsdom does not implement native dialog methods.
 applicationDialog.showModal = () => applicationDialog.setAttribute('open','');

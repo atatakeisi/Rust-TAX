@@ -2,6 +2,17 @@
 
 use serde::{Deserialize, Serialize};
 
+/// 2026年に本人が利用している健康保険
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum HealthCoverage {
+    #[default]
+    Unknown,
+    Dependent,
+    Employer,
+    National,
+}
+
 /// 診断の入力
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
@@ -22,8 +33,10 @@ pub struct DiagnoseInput {
     pub has_salary: bool,
     /// バイト代・給与の年額（額面・円）。両年共通の目安として使う
     pub salary_annual: i64,
-    /// 勤務先の社会保険（健康保険・厚生年金）に本人が加入しているか
+    /// 勤務先の社会保険に本人が加入しているか。2025年と、加入先未確認の2026年で使う
     pub salary_has_shaho: bool,
+    /// 2026年の実際の加入先。指定時は2026年のみ既存の加入情報より優先する
+    pub health_coverage_2026: HealthCoverage,
     /// 2025年分は期限内に青色申告し、65万円控除を適用したか
     pub blue_return_2025: bool,
     /// 2026年分の青色申告承認を受け、65万円控除の要件を満たす見込みか
@@ -50,6 +63,7 @@ impl Default for DiagnoseInput {
             has_salary: false,
             salary_annual: 0,
             salary_has_shaho: false,
+            health_coverage_2026: HealthCoverage::Unknown,
             blue_return_2025: false,
             blue_return_2026: false,
             filed2025: false,

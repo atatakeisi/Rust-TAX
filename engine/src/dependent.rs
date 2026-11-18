@@ -67,7 +67,7 @@ pub fn judge_tax(year: u32, age: u32, total_income: i64) -> DependentJudge {
             label: "対象外".into(),
             value,
             line,
-            message: "16歳未満はもともと親の扶養控除がない年齢なので、親の税金への影響はありません。".into(),
+            message: "16歳未満は所得税の扶養控除の対象年齢より下です。住民税などの扱いは別に確認してください。".into(),
             parent_tax_increase: 0,
         };
     }
@@ -80,9 +80,9 @@ pub fn judge_tax(year: u32, age: u32, total_income: i64) -> DependentJudge {
     if value <= line {
         let room = line - value;
         let (status, label) = if room <= 10 * MAN {
-            (Status::Caution, "ギリギリ")
+            (Status::Caution, "目安に近い")
         } else {
-            (Status::Safe, "セーフ")
+            (Status::Safe, "目安の範囲内")
         };
         return DependentJudge {
             status,
@@ -90,11 +90,10 @@ pub fn judge_tax(year: u32, age: u32, total_income: i64) -> DependentJudge {
             value,
             line,
             message: format!(
-                "所得{}は{}年のライン{}以内。あと{}増えるとアウト。",
+                "所得{}は{}年分の所得の目安（{}以下）に収まっています。他の所得も含めた見込みを確認しましょう。",
                 fmt_yen(value),
                 year,
-                fmt_yen(line),
-                fmt_yen(room + 1)
+                fmt_yen(line)
             ),
             parent_tax_increase: 0,
         };
@@ -103,11 +102,11 @@ pub fn judge_tax(year: u32, age: u32, total_income: i64) -> DependentJudge {
     if specific && value <= SPECIAL_RELATIVE_UPPER {
         return DependentJudge {
             status: Status::Caution,
-            label: "一部アウト".into(),
+            label: "控除の種類を確認".into(),
             value,
             line,
             message: format!(
-                "所得{}で{}を超えたため、親の控除が「特定扶養63万円」→「特定親族特別控除{}」に減ります。親の年末調整・確定申告の書類変更が必要で、親の税金が年 約{}増えます。",
+                "所得{}は扶養控除の目安{}を超えています。条件を満たせば、親は特定親族特別控除を受けられる場合があります。この試算での親の所得税の控除額は{}、税額への影響は約{}です。",
                 fmt_yen(value),
                 fmt_yen(line),
                 fmt_yen(actual.0),
@@ -119,11 +118,11 @@ pub fn judge_tax(year: u32, age: u32, total_income: i64) -> DependentJudge {
 
     DependentJudge {
         status: Status::Out,
-        label: "アウト".into(),
+        label: "所得の目安を超過".into(),
         value,
         line,
         message: format!(
-            "所得{}がライン{}を超えて親の扶養から外れます。親が扶養控除を使っていたら年末調整・確定申告のやり直しが必要で、親側に約{}の追加納税が発生します。",
+            "所得{}はこの試算の控除の目安{}を超えています。親が扶養控除を申告している場合は、対応を確認しましょう。親の税額への影響は約{}の試算です。",
             fmt_yen(value),
             fmt_yen(if specific { SPECIAL_RELATIVE_UPPER } else { line }),
             fmt_yen(increase)
@@ -156,7 +155,7 @@ pub fn judge_insurance(age: u32, annual_estimate: i64, pace_estimate: i64, own_s
             label: "自分で加入".into(),
             value,
             line,
-            message: "勤務先の健康保険に自分で入っているので、親の健康保険の扶養は関係ありません。".into(),
+            message: "本人が勤務先の健康保険に入っている前提です。加入状況は勤務先や保険者に確認できます。".into(),
             parent_tax_increase: 0,
         };
     }
@@ -165,11 +164,11 @@ pub fn judge_insurance(age: u32, annual_estimate: i64, pace_estimate: i64, own_s
     if value >= line {
         return DependentJudge {
             status: Status::Out,
-            label: "アウト".into(),
+            label: "加入先に確認".into(),
             value,
             line,
             message: format!(
-                "年間収入の見込み{}が{}以上。親の保険証から抜けて国保へ切り替えが必要。抜けるべき日以降に親の保険で病院にかかった分は、医療費（7割分）の返還を求められるリスクがあります。",
+                "年間収入の見込み{}が目安の{}以上です。親の健康保険に入っている場合は、扶養資格と喪失日を保険者に確認しましょう。資格を失ったあとに以前の保険で受診すると、保険負担分の返還を求められることがあります。",
                 fmt_yen(value),
                 line_txt
             ),
@@ -179,11 +178,11 @@ pub fn judge_insurance(age: u32, annual_estimate: i64, pace_estimate: i64, own_s
     if pace_estimate >= line {
         return DependentJudge {
             status: Status::Caution,
-            label: "グレー".into(),
+            label: "収入の見込みを確認".into(),
             value,
             line,
             message: format!(
-                "年合計{}はライン未満でも、月平均ペースだと年換算{}。健康保険は「今後1年の見込み」で判断するため、始めた月から扶養外と見なされる可能性があります（加入先の健保組合に確認）。",
+                "年内の収入は{}、同じペースで1年間続けると{}の見込みです。健康保険の扶養では今後1年間の収入を見込むため、加入先に条件を確認しましょう。",
                 fmt_yen(value),
                 fmt_yen(pace_estimate)
             ),
@@ -193,11 +192,11 @@ pub fn judge_insurance(age: u32, annual_estimate: i64, pace_estimate: i64, own_s
     if value >= line * 85 / 100 {
         return DependentJudge {
             status: Status::Caution,
-            label: "ギリギリ".into(),
+            label: "目安に近い".into(),
             value,
             line,
             message: format!(
-                "年間収入の見込み{}。あと{}で{}の壁を超えて扶養から外れます。",
+                "年間収入の見込みは{}です。あと{}でこの試算の目安{}に達します。収入が変わったら加入先に確認しましょう。",
                 fmt_yen(value),
                 fmt_yen(line - value),
                 line_txt
@@ -207,10 +206,10 @@ pub fn judge_insurance(age: u32, annual_estimate: i64, pace_estimate: i64, own_s
     }
     DependentJudge {
         status: Status::Safe,
-        label: "セーフ".into(),
+        label: "目安の範囲内".into(),
         value,
         line,
-        message: format!("年間収入の見込み{}は{}未満。親の保険証のままでOK。", fmt_yen(value), line_txt),
+        message: format!("年間収入の見込み{}は目安の{}未満です。実際の扶養資格は加入先の保険者が確認します。", fmt_yen(value), line_txt),
         parent_tax_increase: 0,
     }
 }

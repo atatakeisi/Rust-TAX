@@ -2,7 +2,7 @@
 
 use crate::dependent;
 use crate::income_tax;
-use crate::model::{Action, DiagnoseInput, DiagnoseOutput, LateFiling, Status, YearResult};
+use crate::model::{Action, DiagnoseInput, DiagnoseOutput, HealthCoverage, LateFiling, Status, YearResult};
 use crate::nhi;
 use crate::pension;
 use crate::prefectures;
@@ -128,11 +128,28 @@ fn calc_year(
     } else {
         annual_est
     };
-    let ins_dep = dependent::judge_insurance(age, annual_est, pace_est, input.salary_has_shaho);
+    let health_coverage = if year == 2026 {
+        input.health_coverage_2026
+    } else {
+        HealthCoverage::Unknown
+    };
+    let own_shaho = match health_coverage {
+        HealthCoverage::Unknown => input.salary_has_shaho,
+        HealthCoverage::Employer => true,
+        HealthCoverage::Dependent | HealthCoverage::National => false,
+    };
+    let mut ins_dep = dependent::judge_insurance(age, annual_est, pace_est, own_shaho);
+    if health_coverage == HealthCoverage::National {
+        ins_dep.status = Status::Na;
+        ins_dep.label = "国保に加入中".into();
+        ins_dep.message = "現在の加入先として国民健康保険を選択しています。国保の納入通知書で保険料と納期限を確認しましょう。".into();
+    }
 
-    // 国保（健保の扶養から外れる場合のみ本人に発生、または一人暮らしで国保加入の場合）
-    let needs_own_nhi = !input.salary_has_shaho
-        && (ins_dep.status == Status::Out || input.lives_alone && annual_est >= 130 * MAN);
+    // 現在国保に加入している場合は、扶養の収入目安未満でも保険料を見積もる。
+    let needs_own_nhi = !own_shaho
+        && (health_coverage == HealthCoverage::National
+            || ins_dep.status == Status::Out
+            || input.lives_alone && annual_est >= 130 * MAN);
     let nhi_calc = if needs_own_nhi {
         nhi::calc(
             input.prefecture,
@@ -164,7 +181,7 @@ fn calc_year(
     let pension_amt = if gross == 0 && salary_raw == 0 || can_defer_or_exempt {
         0
     } else {
-        pension::annual(year, age, input.salary_has_shaho)
+        pension::annual(year, age, own_shaho)
     };
 
     // 社会保険料控除（その年に払う国保＋年金の目安）
@@ -271,13 +288,12 @@ fn calc_late_filing(input: &DiagnoseInput, y2025: &YearResult) -> Option<LateFil
 
     let msg = if tax > 0 {
         format!(
-            "2025年（昨年）分の所得が{}あり、確定申告期限（2026年3月16日）を過ぎています！税務署から連絡が来る前に自主的に「期限後申告」すれば、無申告加算税は5%（約{}）に軽減されます（指摘後だと15〜20%）。",
-            fmt_yen(y2025.business_income),
-            fmt_yen(penalty)
+            "2025年分の確定申告の期限は2026年3月16日でした。配信所得は{}の試算です。未申告なら、収入・経費の資料をまとめ、期限後申告と納付について税務署に早めに確認しましょう。申告・納付の状況によって、加算税や延滞税がかかることがあります。",
+            fmt_yen(y2025.business_income)
         )
     } else {
         format!(
-            "2025年（昨年）分の配信所得が{}（48万円超）あります。基礎控除の引き上げで所得税が0円でも、住民税や親の扶養判定のために申告が必要です。早めに期限後申告（または市区町村への住民税申告）を出しましょう。",
+            "2025年分の配信所得は{}の試算です。所得税の試算が0円でも、申告が必要な場合があります。所得税は税務署に、住民税は該当する市区町村の住民税窓口に相談しましょう。",
             fmt_yen(profit_2025)
         )
     };
@@ -297,24 +313,22 @@ fn build_headline(
     late: &Option<LateFiling>,
 ) -> String {
     if late.is_some() {
-        return "🚨 昨年（2025年）分の無申告アラートあり！今すぐ期限後申告＆親への連絡が必要です".into();
+        return "2025年分の申告状況を確認しましょう".into();
     }
     match overall {
         Status::Out => {
-            if y2026.insurance_dependent.status == Status::Out {
-                "🔴 親の「税金の扶養」も「健康保険証」もアウト！保険証の切り替えと納税資金の確保を".into()
+            if [y2025, y2026].iter().any(|y| y.insurance_dependent.status == Status::Out) {
+                "健康保険の加入先と扶養の資格を確認しましょう".into()
             } else {
-                "🔴 親の「税金の扶養」から外れます！年末調整の伝え直しと納税資金の確保を".into()
+                "税金の扶養に影響する見込みです".into()
             }
         }
-        Status::Caution => {
-            "🟡 扶養の壁ギリギリ（または特定親族特別控除ゾーン）！年末までの振込ペースに注意".into()
-        }
+        Status::Caution => "収入の見込みと扶養の条件を確認しましょう".into(),
         Status::Safe | Status::Na => {
-            if y2025.gross == 0 && y2026.gross == 0 {
-                "🎙️ 収入を入力すると、税金・国保の目安と扶養への影響が表示されます".into()
+            if y2025.gross == 0 && y2026.gross == 0 && y2026.salary_income == 0 {
+                "収入を入力すると、税金・国保の目安と扶養への影響が表示されます".into()
             } else {
-                "🟢 親の扶養も保険証もセーフ！領収書・スクショだけ残しておけば安心です".into()
+                "入金と経費を記録して、次の申告に備えましょう".into()
             }
         }
     }
@@ -332,13 +346,10 @@ fn build_actions(
     if let Some(lf) = late {
         list.push(Action {
             priority: Status::Out,
-            icon: "🚨".into(),
-            title: "昨年（2025年）分の「期限後申告」を今すぐ出す".into(),
-            detail: format!(
-                "{} マイナンバーカード＋スマホ（e-Tax）で自宅から提出できます。",
-                lf.message
-            ),
-            when: "今すぐ（1日でも早く）".into(),
+            icon: "🧾".into(),
+            title: "2025年分の申告状況を確かめる".into(),
+            detail: lf.message.clone(),
+            when: "早めに確認".into(),
         });
     }
 
@@ -349,9 +360,9 @@ fn build_actions(
         list.push(Action {
             priority: Status::Out,
             icon: "🪪".into(),
-            title: "親に健康保険証の件を話し、市区町村役場で「国民健康保険」に切り替える".into(),
-            detail: "親の勤務先に「被扶養者異動届」を出して資格喪失証明書をもらい、14日以内に役所の国保窓口（またはマイナポータル）で加入手続きをします。放置すると後から病院代7割分の返還請求が親に届きます。".into(),
-            when: "収入見込みが壁を超えた時点から14日以内".into(),
+            title: "親の健康保険に、扶養の資格と外れる日を確認する".into(),
+            detail: "親の勤務先や加入先の保険者に、今後1年間の収入見込みを伝えましょう。扶養を外れ、ほかの健康保険に入らない場合は、資格を失った日から原則14日以内に市区町村で国保の加入手続きをします。手続きが遅れても保険料が資格取得日にさかのぼることがあり、資格を失った後に以前の保険で受診すると保険負担分の返還を求められることがあります。".into(),
+            when: "まず加入先へ相談".into(),
         });
     } else if y2025.insurance_dependent.status == Status::Caution
         || y2026.insurance_dependent.status == Status::Caution
@@ -359,9 +370,9 @@ fn build_actions(
         list.push(Action {
             priority: Status::Caution,
             icon: "🪪".into(),
-            title: "親の健康保険組合の「扶養ルール（自営業の経費の扱い）」を確認する".into(),
-            detail: "健康保険組合によっては「経費を引く前の売上（振込額）」で130万/150万を判定するところがあります。親の保険証に記載の健保組合名をググるか親に確認しましょう。".into(),
-            when: "今月中".into(),
+            title: "親の健康保険が使う収入の計算方法を確認する".into(),
+            detail: "配信の収入と給与の見込みを、親の勤務先や加入先の保険者に伝えましょう。健康保険の扶養で差し引ける経費は、税金の申告で使う経費と扱いが異なることがあります。".into(),
+            when: "収入の見込みが変わったとき".into(),
         });
     }
 
@@ -374,12 +385,12 @@ fn build_actions(
         list.push(Action {
             priority: Status::Out,
             icon: "👪".into(),
-            title: "親に「今年の年末調整で私を扶養から外して」とLINEする".into(),
+            title: "親に年ごとの所得を伝え、税金の扶養を確認する".into(),
             detail: format!(
-                "この診断カードをスクショして親に送ればOK！親の税金が年 約{}増えるので、その分を配信の稼ぎから親に渡すと揉めません。",
+                "親が扶養控除を申告している場合は、勤務先や税務署に年末調整・確定申告の対応を確認してもらいましょう。親の税額への影響は最大の年で約{}という試算で、実際の金額は親の所得などによって異なります。",
                 fmt_yen(inc_max)
             ),
-            when: "親の会社の年末調整（11〜12月）の前まで".into(),
+            when: "所得の見込みが分かったとき".into(),
         });
     } else if y2025.tax_dependent.status == Status::Caution
         || y2026.tax_dependent.status == Status::Caution
@@ -387,9 +398,9 @@ fn build_actions(
         list.push(Action {
             priority: Status::Caution,
             icon: "👪".into(),
-            title: "親に「今年の所得の見込み額」を共有しておく（特定親族特別控除）".into(),
-            detail: "19〜22歳は所得62万円（2025年は58万円）を超えても123万円以下なら「特定親族特別控除」で親の控除が段階的に残りますが、親が年末調整の紙にあなたの所得見込みを正確に書く必要があります。".into(),
-            when: "11月〜12月（親の年末調整時）".into(),
+            title: "親に所得の見込みを伝える".into(),
+            detail: "親が扶養控除を申告している場合は、見込み額を共有しましょう。19〜22歳は、所得などの条件に応じて親が特定親族特別控除を受けられる場合があります。".into(),
+            when: "年末調整や確定申告の前に".into(),
         });
     }
 
@@ -400,8 +411,8 @@ fn build_actions(
             priority: Status::Caution,
             icon: "📘".into(),
             title: "青色申告を始める年と申請期限を確認する".into(),
-            detail: "青色申告には開業届とは別に承認申請が必要です。2026年分の申請期限を過ぎた場合は、2027年分以降の適用を確認してください。".into(),
-            when: "原則3月15日まで（1月16日以降の新規開業は開業から2か月以内）".into(),
+            detail: "配信が事業所得に当たる場合は、青色申告を検討できます。開業届とは別に青色申告承認申請書を提出し、特別控除は記帳や申告の要件を確認しましょう。申請期限を過ぎている場合は、適用できる年を税務署に確認してください。".into(),
+            when: "原則3月15日まで（1月16日以降の新規開業は開業日から2か月以内）".into(),
         });
     }
 
@@ -417,14 +428,23 @@ fn build_actions(
         });
     }
 
-    // 6. 住民税の申告（所得税は0円だけど住民税の申告が必要なケース）
+    // 6. 住民税の申告と通知書の確認
     if y2026.resident_filing_required {
         list.push(Action {
             priority: Status::Caution,
             icon: "🏛️".into(),
-            title: "所得税は0円でも「住民税の申告」を忘れずに".into(),
-            detail: "2026年は基礎控除104万円のおかげで所得税が0円でも、所得が45万円を超えているため住民税の申告が必要です（確定申告を出せば住民税申告も兼ねられます）。".into(),
-            when: "2027年2月16日〜3月15日".into(),
+            title: "確定申告をしない場合は、住民税の申告を確認する".into(),
+            detail: "所得税の確定申告が不要でも、住民税の申告が必要な場合があります。所得税の確定申告を提出した場合、同じ所得について住民税を別に申告する必要は通常ありません。申告の要否と期限は、市区町村の住民税窓口に確認しましょう。".into(),
+            when: "市区町村の申告期限まで".into(),
+        });
+    }
+    if y2025.resident_tax > 0 || y2026.resident_tax > 0 {
+        list.push(Action {
+            priority: Status::Caution,
+            icon: "📬".into(),
+            title: "住民税の通知書で、納付方法と期限を確認する".into(),
+            detail: "自分で納める場合は市区町村の納税通知書、給与から引かれる場合は勤務先からの通知を確認しましょう。通知が見当たらない、または期限までの納付が難しい場合は、市区町村の窓口に早めに相談してください。".into(),
+            when: "通知を受け取ったとき".into(),
         });
     }
 
@@ -432,9 +452,9 @@ fn build_actions(
     list.push(Action {
         priority: Status::Safe,
         icon: "🧾".into(),
-        title: "配信で使ったお金の「スクショ・レシート」をスマホのアルバムに保存".into(),
-        detail: "リングライト・マイク・スマホスタンド・配信用の衣装やコスメ・BGMやスタンプ代・コラボ配信の交通費・自宅の家賃や通信費の一部（按分）は経費になります。経費が増えるほど所得が減って税金も扶養判定も有利に！".into(),
-        when: "今日から毎日".into(),
+        title: "配信の入金と、仕事で使った支出を記録する".into(),
+        detail: "入金明細や領収書などを保存し、日付・金額・用途を台帳に記録しましょう。通信費など仕事と私用を兼ねる支出は、記録で区分できる仕事分が必要経費の対象です。".into(),
+        when: "入金や支払いのあと".into(),
     });
 
     list
@@ -458,6 +478,31 @@ fn build_notes(input: &DiagnoseInput, pref_name: &str, pref_city: &str) -> Vec<S
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reported_coverage_only_changes_current_year() {
+        let mut input = DiagnoseInput {
+            income2025: 180 * MAN,
+            income2026: 100 * MAN,
+            ..Default::default()
+        };
+        let baseline = diagnose(&input);
+        assert!(baseline.years[0].nhi > 0);
+        assert_eq!(baseline.years[1].nhi, 0);
+
+        input.health_coverage_2026 = HealthCoverage::National;
+        let national = diagnose(&input);
+        assert!(national.years[1].nhi > 0);
+        assert_eq!(national.years[1].insurance_dependent.status, Status::Na);
+        assert_eq!(national.years[0].nhi, baseline.years[0].nhi);
+
+        input.income2026 = 180 * MAN;
+        input.health_coverage_2026 = HealthCoverage::Employer;
+        let employer = diagnose(&input);
+        assert_eq!(employer.years[1].nhi, 0);
+        assert_eq!(employer.years[1].pension, 0);
+        assert_eq!(employer.years[0].nhi, baseline.years[0].nhi);
+    }
 
     #[test]
     fn voice_example_scenario() {

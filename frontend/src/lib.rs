@@ -1,10 +1,12 @@
 mod blue_deadline;
+mod guidance;
 mod ledger;
 mod parser;
+use guidance::{Checked, Topic};
 use ledger::Entry;
 use rust_tax_engine::{
     diagnose::diagnose,
-    model::{DiagnoseInput, Status},
+    model::{DiagnoseInput, DiagnoseOutput, HealthCoverage, Status},
 };
 use std::cell::RefCell;
 use wasm_bindgen::{prelude::*, JsCast};
@@ -19,6 +21,14 @@ struct App {
     storage_protected: bool,
     speech: Option<JsValue>,
     speech_state: SpeechState,
+    demo: Option<DemoBackup>,
+    checked: Checked,
+    guidance_storage_ok: bool,
+}
+
+struct DemoBackup {
+    input: DiagnoseInput,
+    transcript: String,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -102,6 +112,12 @@ fn render_blue_deadline() {
     };
     text("blue-application-result", result);
     text("blue-application-detail", detail);
+}
+fn open_blue_dialog() -> Result<(), JsValue> {
+    render_blue_deadline();
+    el("blue-application-dialog")
+        .unchecked_ref::<HtmlDialogElement>()
+        .show_modal()
 }
 fn esc(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -251,6 +267,7 @@ fn render(a: &App) {
     );
     let mode = if s.blue_return_2026 { "青色" } else { "白色" };
     text("detail-mode", format!("2026年分の詳細（{mode}）"));
+    render_guidance(a, &out);
     let salary = s.salary_annual.max(0);
     text("result-income", man(y.gross));
     text("result-expense", man(y.expense));
@@ -288,7 +305,7 @@ fn render(a: &App) {
         );
     }
     for (id, n) in [
-        ("lock-total-amount", out.lock_total),
+        ("lock-total-amount", y.total),
         ("free-money-amount", out.free_money),
     ] {
         text(id, man(n));
@@ -303,30 +320,21 @@ fn render(a: &App) {
     );
     text(
         "reserve-monthly-amount",
-        format!("月 約{}", man((out.lock_total + 1199) / 1200 * 100)),
+        format!("月 約{}", man((y.total + 1199) / 1200 * 100)),
     );
-    text("lock-total-exact", yen(out.lock_total));
+    text("lock-total-exact", yen(y.total));
     text("free-money-exact", yen(out.free_money));
-    text("aside-percent", format!("{}%", out.set_aside_percent));
-    text("sched-it", format!("約{}（年1回）", man(y.income_tax)));
-    text(
-        "sched-rt",
-        format!(
-            "1回 約{}（年4回の目安）",
-            man((y.resident_tax + 399) / 400 * 100)
-        ),
-    );
-    text(
-        "sched-nhi",
-        format!("1回 約{}（年10回の目安）", man((y.nhi + 999) / 1000 * 100)),
-    );
+    text("sched-it", man(y.income_tax));
+    text("sched-rt", man(y.resident_tax));
+    text("sched-nhi", man(y.nhi));
+    text("sched-pension", man(y.pension));
     hidden("late-filing-banner", out.late_filing.is_none());
     if let Some(l) = &out.late_filing {
         text("late-filing-msg", &l.message);
         text(
             "late-filing-numbers",
             format!(
-                "所得税{} ＋ 加算・延滞税 約{}",
+                "試算：所得税{} ＋ 加算・延滞税 約{}",
                 yen(l.tax),
                 yen(l.penalty + l.delinquency)
             ),
@@ -369,6 +377,107 @@ fn render(a: &App) {
             .collect::<String>(),
     );
     render_ledger(a);
+}
+fn render_guidance(a: &App, out: &DiagnoseOutput) {
+    let demo = a.demo.is_some();
+    let entered = guidance::has_amounts(&a.input);
+    hidden("demo-indicator", !demo);
+    hidden("btn-end-demo", !demo);
+    hidden("adjust-demo-notice", !demo);
+    let _ = el("adjust-fields").toggle_attribute_with_force("disabled", demo);
+    hidden("btn-try-guide", demo || entered);
+    hidden("guide-demo-row", entered && !demo);
+    hidden("next-step", !entered);
+    hidden("drawer-next-steps", !entered);
+
+    let coverage = match a.input.health_coverage_2026 {
+        HealthCoverage::Unknown if a.input.salary_has_shaho => "employer",
+        HealthCoverage::Unknown => "unknown",
+        HealthCoverage::Dependent => "dependent",
+        HealthCoverage::Employer => "employer",
+        HealthCoverage::National => "national",
+    };
+    hidden("insurance-estimate-note", coverage == "unknown");
+    setval("guide-health-coverage", coverage);
+    if !entered {
+        return;
+    }
+
+    let steps = guidance::steps(&a.input, out);
+    let mut next = None;
+    let mut checked_count = 0;
+    for step in &steps {
+        let id = step.topic.id();
+        let checked = !demo
+            && a.checked.get(&step.topic).is_some_and(|scope| scope == step.review_scope);
+        checked_count += usize::from(checked);
+        text(&format!("guide-title-{id}"), step.title);
+        text(&format!("guide-copy-{id}"), format!("{} {}", step.preview, step.detail));
+        let status_id = format!("guide-status-{id}");
+        let (label, tone) = if checked {
+            ("確認済み", "safe")
+        } else if step.priority >= 4 {
+            ("先に確認", "caution")
+        } else {
+            ("", "")
+        };
+        hidden(&status_id, label.is_empty());
+        if !label.is_empty() {
+            el(&status_id).set_class_name(&format!("status-badge badge-{tone}"));
+            text(&status_id, label);
+        }
+        let check_id = format!("guide-check-{id}");
+        hidden(&check_id, demo);
+        text(&check_id, if checked { "確認の記録を戻す" } else { "確認済みにする" });
+        if !checked && step.priority > 0 && next.is_none_or(|current: &guidance::Step| step.priority > current.priority) {
+            next = Some(step);
+        }
+    }
+    text("guidance-count", if demo { "入力例".to_owned() } else { format!("確認 {checked_count} / {}", Topic::ALL.len()) });
+    text("guidance-note", if demo {
+        "入力例で確認する順番を試せます。"
+    } else if !a.guidance_storage_ok {
+        "確認の記録は画面を閉じるまで残ります。"
+    } else {
+        "確認の記録はこの端末に保存されます。収入や加入先が変わったら見直してください。"
+    });
+    hidden("next-step-badge", !demo);
+    if demo {
+        text("next-step-badge", "入力例");
+        el("next-step-badge").set_class_name("status-badge badge-caution");
+    }
+    let (target, title, preview) = next.map_or(
+        ("ledger", "振込や経費を台帳に記録する", "振込明細や領収書と一緒に、まず1件だけ残しましょう。"),
+        |step| (step.topic.id(), step.title, step.preview),
+    );
+    text("next-step-copy", preview);
+    text("btn-next-step", title);
+    let _ = el("btn-next-step").set_attribute("data-guide-open", target);
+}
+fn save_guidance(a: &mut App) {
+    if a.guidance_storage_ok {
+        a.guidance_storage_ok = serde_json::to_string(&a.checked)
+            .ok()
+            .and_then(|data| {
+                web_sys::window()?.local_storage().ok().flatten()?
+                    .set_item(guidance::STORAGE_KEY, &data).ok()
+            })
+            .is_some();
+    }
+}
+fn open_disclosure(id: &str) -> Result<(), JsValue> {
+    let drawer = el(id);
+    drawer.set_attribute("open", "")?;
+    if let Some(summary) = drawer.query_selector("summary")? {
+        summary.unchecked_ref::<web_sys::HtmlElement>().focus()?;
+    }
+    Ok(())
+}
+fn end_demo(a: &mut App) {
+    if let Some(backup) = a.demo.take() {
+        a.input = backup.input;
+        setval("voice-transcript-input", backup.transcript);
+    }
 }
 fn render_ledger(a: &App) {
     let sum = ledger::summarize(&a.entries, a.year);
@@ -494,6 +603,15 @@ fn days() {
 }
 fn update(a: &mut App, id: &str) {
     match id {
+        "guide-health-coverage" => {
+            let coverage = match val(id).as_str() {
+                "dependent" => HealthCoverage::Dependent,
+                "employer" => HealthCoverage::Employer,
+                "national" => HealthCoverage::National,
+                _ => HealthCoverage::Unknown,
+            };
+            a.input.health_coverage_2026 = coverage;
+        }
         "blue-opening-date" => {
             render_blue_deadline();
             return;
@@ -566,8 +684,11 @@ fn add_entry(a: &mut App) {
 fn share(a: &App) {
     let o = diagnose(&a.input);
     let mut s = format!(
-        "【ライバー税金・扶養診断】\n{}\n{} / {}歳\n",
-        o.headline, o.prefecture_name, a.input.age
+        "【ライバー税金・扶養診断{}】\n{}\n{} / {}歳\n",
+        if a.demo.is_some() { "（入力例）" } else { "" },
+        o.headline,
+        o.prefecture_name,
+        a.input.age,
     );
     for y in &o.years {
         s += &format!(
@@ -582,8 +703,8 @@ fn share(a: &App) {
         );
     }
     s += &format!(
-        "残すお金: {} / 手残り: {}",
-        man(o.lock_total),
+        "2026年分の負担目安: {} / 配信の手残り目安: {}",
+        man(o.years[1].total),
         man(o.free_money)
     );
     setval("share-modal-textarea", s);
@@ -612,7 +733,40 @@ fn download(a: &App) -> Result<(), JsValue> {
 fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
     let id = e.id();
     let attr = |k: &str| e.get_attribute(k);
-    if let Some(v) = attr("data-age-group") {
+    if let Some(topic) = attr("data-guide-open") {
+        if topic == "ledger" {
+            return open_disclosure("drawer-ledger-pro");
+        }
+        if Topic::ALL.iter().any(|item| item.id() == topic) {
+            el("drawer-next-steps").set_attribute("open", "")?;
+            return open_disclosure(&format!("guide-{topic}"));
+        }
+    } else if let Some(target) = attr("data-guide-target") {
+        return match target.as_str() {
+            "prior-return" => {
+                el("drawer-adjust").set_attribute("open", "")?;
+                open_disclosure("drawer-input-2025")
+            }
+            "ledger" => open_disclosure("drawer-ledger-pro"),
+            "blue" => open_blue_dialog(),
+            _ => Ok(()),
+        };
+    } else if let Some(topic) = attr("data-guide-check") {
+        if a.demo.is_none() {
+            let out = diagnose(&a.input);
+            if let Some(step) = guidance::steps(&a.input, &out)
+                .into_iter()
+                .find(|step| step.topic.id() == topic)
+            {
+                if a.checked.get(&step.topic).is_some_and(|scope| scope == step.review_scope) {
+                    a.checked.remove(&step.topic);
+                } else {
+                    a.checked.insert(step.topic, step.review_scope.to_owned());
+                }
+                save_guidance(a);
+            }
+        }
+    } else if let Some(v) = attr("data-age-group") {
         a.input.age = match v.as_str() {
             "u18" => 17,
             "student" => 20,
@@ -624,6 +778,13 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
             a.input.salary_annual = 800000;
         }
     } else if let Some(v) = attr("data-voice-sample") {
+        if a.demo.is_none() {
+            a.demo = Some(DemoBackup { input: a.input.clone(), transcript: val("voice-transcript-input") });
+        }
+        a.input = DiagnoseInput {
+            days_since_2025_deadline: a.input.days_since_2025_deadline,
+            ..DiagnoseInput::default()
+        };
         setval("voice-transcript-input", &v);
         parser::apply(&v, &mut a.input);
         mic_status("");
@@ -712,16 +873,16 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
         return Ok(());
     } else {
         match id.as_str() {
+            "btn-end-demo" | "btn-end-demo-adjust" => {
+                end_demo(a);
+                render(a);
+                return el("mic-btn").unchecked_ref::<web_sys::HtmlElement>().focus();
+            }
             "btn-show-result" => {
                 mic_status("");
                 return show_comparison();
             }
-            "btn-blue-application" => {
-                render_blue_deadline();
-                return el("blue-application-dialog")
-                    .unchecked_ref::<HtmlDialogElement>()
-                    .show_modal();
-            }
+            "btn-blue-application" => return open_blue_dialog(),
             "btn-blue-application-close" => {
                 el("blue-application-dialog")
                     .unchecked_ref::<HtmlDialogElement>()
@@ -729,10 +890,15 @@ fn click(a: &mut App, e: Element) -> Result<(), JsValue> {
                 return Ok(());
             }
             "mic-btn" => {
+                if a.demo.is_some() {
+                    end_demo(a);
+                    render(a);
+                }
                 toggle_speech(a)?;
                 return Ok(());
             }
             "btn-sync-ledger-to-diag" => {
+                end_demo(a);
                 let x = ledger::summarize(&a.entries, 2025);
                 let y = ledger::summarize(&a.entries, 2026);
                 a.input.income2025 = x.income;
@@ -932,6 +1098,18 @@ pub fn start() -> Result<(), JsValue> {
         a.input.days_since_2025_deadline = ((js_sys::Date::now() - deadline) / 86400000.).floor().max(0.) as i64;
         let storage = web_sys::window().unwrap().local_storage().ok().flatten();
         a.storage_ok = storage.is_some();
+        if let Some(storage) = &storage {
+            match storage.get_item(guidance::STORAGE_KEY) {
+                Ok(None) => a.guidance_storage_ok = true,
+                Ok(Some(raw)) => {
+                    if let Ok(checked) = serde_json::from_str(&raw) {
+                        a.checked = checked;
+                        a.guidance_storage_ok = true;
+                    }
+                }
+                Err(_) => {}
+            }
+        }
         match storage.and_then(|s| s.get_item(ledger::KEY).ok().flatten()) {
             Some(raw) => match serde_json::from_str::<Vec<Entry>>(&raw) {
                 Ok(entries) => a.entries = entries,
@@ -941,7 +1119,7 @@ pub fn start() -> Result<(), JsValue> {
                     feedback("⚠️ 保存データを読み込めません。既存データを保護するため記帳を停止しています。");
                 }
             },
-            None => a.entries = serde_json::from_str(include_str!("sample-ledger.json")).unwrap(),
+            None => {}
         }
         render(&a);
     });
